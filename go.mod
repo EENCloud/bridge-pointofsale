@@ -1,4 +1,4 @@
-module bridge-devices-pos
+module bridge-pointofsale
 
 go 1.23.0
 

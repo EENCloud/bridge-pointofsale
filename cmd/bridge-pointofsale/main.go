@@ -1,11 +1,11 @@
 package main
 
 import (
-	"bridge-devices-pos/internal/api"
-	"bridge-devices-pos/internal/core"
-	"bridge-devices-pos/internal/settings"
-	"bridge-devices-pos/internal/vendors"
-	_ "bridge-devices-pos/internal/vendors/seveneleven"
+	"bridge-pointofsale/internal/api"
+	"bridge-pointofsale/internal/core"
+	"bridge-pointofsale/internal/settings"
+	"bridge-pointofsale/internal/vendors"
+	_ "bridge-pointofsale/internal/vendors/seveneleven"
 	"context"
 	"encoding/json"
 	"net/http"
@@ -19,7 +19,7 @@ import (
 )
 
 func main() {
-	logger := goeen_log.NewContext(os.Stdout, "", goeen_log.LevelInfo).GetLogger("bridge-devices-pos", goeen_log.LevelInfo)
+	logger := goeen_log.NewContext(os.Stdout, "", goeen_log.LevelInfo).GetLogger("bridge-pointofsale", goeen_log.LevelInfo)
 	logger.Info("Starting Bridge Devices POS application...")
 
 	dataDir := core.GetDataDirectory()

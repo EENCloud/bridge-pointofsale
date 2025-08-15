@@ -3,10 +3,10 @@
 set -e
 
 # --- Configuration ---
-SERVICE_NAME="bridge-devices-pos"
+SERVICE_NAME="bridge-pointofsale"
 HOST_DATA_DIR="/opt/een/data/point_of_sale"
 HOST_LOG_DIR="/opt/een/var/log/point_of_sale"
-COMPOSE_DEST="/opt/een/data/docker-compose/bridge-devices-pos"
+COMPOSE_DEST="/opt/een/data/docker-compose/bridge-pointofsale"
 
 echo "======================================"
 echo "   Bridge POS Pre-flight Setup"

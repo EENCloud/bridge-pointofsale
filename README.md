@@ -1,4 +1,4 @@
-# Bridge Devices POS
+# Bridge Point of Sale
 
 POS transaction processor. Converts POS data to ANNTs and sends them, routes by IP→ESN mapping.
 
@@ -9,7 +9,7 @@ Test the complete POS logs → ANNTs transformation:
 ```bash
 # 1. Clone repo
 git clone <repo-url>
-cd bridge-devices-pos
+cd bridge-pointofsale
 
 # 2. Extract sample data from tar files
 # Place your register_logs_*.tar.gz files in data/7eleven/register_logs/tar_folder/
@@ -40,7 +40,7 @@ head -n 50 data/pos-test-results/annts_<timestamp>.json | jq .
 
 ```bash
 # Build
-docker build -t bridge-devices-pos .
+docker build -t pointofsale .
 
 # Run 
 docker-compose up -d

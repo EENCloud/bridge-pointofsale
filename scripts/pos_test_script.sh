@@ -18,8 +18,8 @@ cleanup() {
         fi
     fi
     
-    # Kill any remaining bridge-devices-pos processes
-    pkill -f "bridge-devices-pos" 2>/dev/null || true
+    # Kill any remaining bridge-pointofsale processes
+    pkill -f "bridge-pointofsale" 2>/dev/null || true
     
     # Kill any processes using our ports
     fuser -k 33480/tcp 6334/tcp 2>/dev/null || true
@@ -99,7 +99,7 @@ log() { echo "[$(date '+%H:%M:%S')] $1"; }
 log "Cleaning up any existing processes and port conflicts..."
 fuser -k 33480/tcp 6334/tcp 2>/dev/null || true
 docker-compose down 2>/dev/null || true  
-pkill -f bridge-devices-pos 2>/dev/null || true
+pkill -f bridge-pointofsale 2>/dev/null || true
 sleep 2
 
 if [[ "$SHOW_HELP" == "true" ]]; then
@@ -137,7 +137,7 @@ mkdir -p "$(dirname "$ANNT_FILE")"
 
 # Build and start
 log "Building..."
-go build -v ./cmd/bridge-devices-pos
+go build -v ./cmd/bridge-pointofsale
 
 log "Starting application..."
 if [[ "$SIM_MODE" == "true" ]]; then
@@ -148,7 +148,7 @@ else
     log "External mode: Manual data injection"
 fi
 
-./bridge-devices-pos > app.log 2>&1 &
+./bridge-pointofsale > app.log 2>&1 &
 APP_PID=$!
 log "Started with PID: $APP_PID"
 

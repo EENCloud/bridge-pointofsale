@@ -1,8 +1,8 @@
 package vendors
 
 import (
-	"bridge-devices-pos/internal/core"
-	"bridge-devices-pos/internal/settings"
+	"bridge-pointofsale/internal/core"
+	"bridge-pointofsale/internal/settings"
 	"context"
 	"encoding/json"
 

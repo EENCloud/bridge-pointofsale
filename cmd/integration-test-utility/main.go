@@ -1,11 +1,11 @@
 package main
 
 import (
-	"bridge-devices-pos/internal/api"
-	"bridge-devices-pos/internal/core"
-	"bridge-devices-pos/internal/settings"
-	"bridge-devices-pos/internal/vendors"
-	"bridge-devices-pos/internal/vendors/seveneleven"
+	"bridge-pointofsale/internal/api"
+	"bridge-pointofsale/internal/core"
+	"bridge-pointofsale/internal/settings"
+	"bridge-pointofsale/internal/vendors"
+	"bridge-pointofsale/internal/vendors/seveneleven"
 	"bytes"
 	"context"
 	"encoding/json"

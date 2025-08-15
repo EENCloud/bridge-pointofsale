@@ -15,7 +15,7 @@ help:
 	@echo "  clean         - Clean generated files"
 
 build:
-	go build -v ./cmd/bridge-devices-pos
+	go build -v ./cmd/bridge-pointofsale
 
 test:
 	go test -v ./...
@@ -36,7 +36,7 @@ vet:
 	go vet ./...
 
 lint:
-	golangci-lint run --config .golangci.yml ./internal/... ./cmd/bridge-devices-pos/...
+	golangci-lint run --no-config --timeout=5m --enable=errcheck,govet,ineffassign,staticcheck,unused,misspell ./internal/... ./cmd/bridge-pointofsale/...
 
 luacheck:
 	luacheck --config internal/bridge/.luacheckrc internal/bridge/point_of_sale.lua
@@ -49,4 +49,4 @@ ci-local:
 	act --pull=false
 
 clean:
-	rm -f coverage.out coverage.html bridge-devices-pos 
+	rm -f coverage.out coverage.html bridge-pointofsale 

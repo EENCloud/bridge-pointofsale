@@ -45,16 +45,16 @@ func (p *Processor) updateState(payload map[string]interface{}, ip string, state
 		if store != "" && terminal != "" && txn != "" {
 			nameString := fmt.Sprintf("%s:%s:%s:%s", ip, store, terminal, txn)
 			state.UUID = uuid.NewSHA1(posNamespaceUUID, []byte(nameString))
-			state.Seq = 0
+			state.Seq = 1
 			p.logger.Infof("Generated new UUIDv5 %s for transaction %s", state.UUID, txn)
 		}
 	} else if cmd, ok := payload["CMD"].(string); ok && cmd == "StartTransaction" && state.UUID == uuid.Nil {
 		// If it's a start without metadata, generate a temporary random UUID.
 		state.UUID = uuid.New()
-		state.Seq = 0
+		state.Seq = 1
 		p.logger.Infof("Generated temporary UUIDv4 %s for new transaction", state.UUID)
 	}
-	state.Seq++
+
 }
 
 // UpdateState manages the transaction lifecycle, creating a UUIDv5 on start.
@@ -74,9 +74,7 @@ func (p *Processor) CreateANNTStructure(payload map[string]interface{}, state *T
 	}
 
 	sequence := int(state.Seq)
-	if namespace == 91 {
-		sequence = 0
-	}
+	state.Seq++
 
 	return map[string]interface{}{
 		"uuid": state.UUID.String(),

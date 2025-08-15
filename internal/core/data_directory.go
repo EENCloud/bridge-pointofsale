@@ -11,8 +11,8 @@ func GetDataDirectory() string {
 	// Try production paths first
 	productionPaths := []string{
 		"/opt/een/data/point_of_sale",
-		"/var/lib/bridge-devices-pos",
-		"/usr/local/var/bridge-devices-pos",
+		"/var/lib/bridge-pointofsale",
+		"/usr/local/var/bridge-pointofsale",
 	}
 
 	for _, path := range productionPaths {
@@ -29,7 +29,7 @@ func GetDataDirectory() string {
 
 	// Fall back to user-accessible locations for development
 	fallbackPaths := []string{
-		filepath.Join(os.TempDir(), "bridge-devices-pos"),
+		filepath.Join(os.TempDir(), "bridge-pointofsale"),
 		"./data",
 		"./test_data",
 	}

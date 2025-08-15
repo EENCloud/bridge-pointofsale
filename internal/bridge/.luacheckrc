@@ -1,4 +1,4 @@
--- Luacheck configuration for bridge-devices-pos EEN Lua script
+-- Luacheck configuration for bridge-pointofsale EEN Lua script
 
 -- Standard Lua globals
 std = "lua53"

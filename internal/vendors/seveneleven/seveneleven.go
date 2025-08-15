@@ -1,14 +1,15 @@
 package seveneleven
 
 import (
-	"bridge-devices-pos/internal/core"
-	"bridge-devices-pos/internal/settings"
-	"bridge-devices-pos/internal/vendors"
+	"bridge-pointofsale/internal/core"
+	"bridge-pointofsale/internal/settings"
+	"bridge-pointofsale/internal/vendors"
 	"context"
 	"encoding/json"
 	"fmt"
 	"os"
 	"strconv"
+	"strings"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -163,36 +164,10 @@ func (v *Vendor) HandleESNConfiguration(esn string, vendor *settings.VendorConfi
 
 		if v.isSimMode {
 			// Assign register file for this ESN using modulo logic
-			registerFile := v.assignRegisterFileForESN(esn, registers)
+			v.assignRegisterFileForESN(esn, registers)
 
-			if v.simulator != nil {
-				v.logger.Info("New configuration received, stopping existing simulator...")
-				v.simulator.Stop()
-				v.simulator = nil
-			}
-
-			ips := make([]string, 0, len(registers))
-			for _, r := range registers {
-				if r.IPAddress != "" {
-					ips = append(ips, r.IPAddress)
-				}
-			}
-			if len(ips) > 0 {
-				target := fmt.Sprintf("http://localhost:%d", v.settings.ListenPort)
-
-				// Create simulator with REAL_TIME control and register mappings
-				realTime := os.Getenv("REAL_TIME") != "false"
-				v.simulator = NewSimulatorWithMappings(v.logger, target, ips, registerFile, realTime, registers)
-
-				go func() {
-					v.logger.Infof("Starting simulator for ESN %s: %d IPs using %s (REAL_TIME=%t)",
-						esn, len(ips), registerFile, realTime)
-					if err := v.simulator.Start(); err != nil {
-						v.logger.Errorf("Simulator error: %v", err)
-					}
-				}()
-				v.logger.Infof("Simulator started for ESN %s with %s", esn, registerFile)
-			}
+			// Start or restart simulator with all current mappings
+			v.updateSimulator()
 		}
 	}
 }
@@ -398,4 +373,67 @@ func (v *Vendor) reportStatus() {
 
 	v.logger.Infof("STATUS: %s mode | %d ESNs | %d IP mappings | %d handlers | %d HTTP reqs (%s)",
 		mode, activeESNs, activeMappings, activeHandlers, httpCount, uptime.Round(time.Second))
+}
+
+// updateSimulator starts or restarts simulator with all current IP mappings
+func (v *Vendor) updateSimulator() {
+	// Get all current IP-ESN mappings
+	allMappings := v.stateMachine.GetIPESNMappings()
+
+	if len(allMappings) == 0 {
+		return // No mappings yet
+	}
+
+	// Always restart simulator to keep it simple
+	if v.simulator != nil {
+		v.logger.Info("Restarting simulator with updated mappings...")
+		v.simulator.Stop()
+		v.simulator = nil
+	}
+
+	// Get all IPs
+	allIPs := make([]string, 0, len(allMappings))
+	for ip := range allMappings {
+		allIPs = append(allIPs, ip)
+	}
+
+	// Start simulator with ALL IPs and their mappings
+	target := fmt.Sprintf("http://localhost:%d", v.settings.ListenPort)
+	realTime := os.Getenv("REAL_TIME") != "false"
+
+	// Build register configs with terminal numbers from ESN assignments
+	allRegisters := make([]RegisterConfig, 0, len(allIPs))
+	for _, ip := range allIPs {
+		esn := allMappings[ip]
+		terminalNumber := "01" // Default fallback
+
+		// Get terminal number from the original register config when ESN was assigned
+		if assignedFile, exists := v.esnToRegisterFile[esn]; exists {
+			// Extract terminal number from assigned file: register_X.jsonl -> terminal X
+			if strings.HasPrefix(assignedFile, "register_") && strings.HasSuffix(assignedFile, ".jsonl") {
+				fileNum := strings.TrimPrefix(assignedFile, "register_")
+				fileNum = strings.TrimSuffix(fileNum, ".jsonl")
+				if termNum, err := strconv.Atoi(fileNum); err == nil {
+					terminalNumber = fmt.Sprintf("%02d", termNum)
+				}
+			}
+		}
+
+		allRegisters = append(allRegisters, RegisterConfig{
+			IPAddress:      ip,
+			TerminalNumber: terminalNumber,
+			StoreNumber:    "38551",
+		})
+		v.logger.Infof("IP %s → ESN %s → terminal %s", ip, esn, terminalNumber)
+	}
+
+	// Create modulo-only simulator - each IP gets its assigned register file
+	v.simulator = NewSimulatorWithMappings(v.logger, target, allIPs, "", realTime, allRegisters)
+
+	go func() {
+		v.logger.Infof("Starting simulator: %d IPs total (REAL_TIME=%t)", len(allIPs), realTime)
+		if err := v.simulator.Start(); err != nil {
+			v.logger.Errorf("Simulator error: %v", err)
+		}
+	}()
 }

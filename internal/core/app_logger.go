@@ -1,7 +1,6 @@
 package core
 
 import (
-	"encoding/binary"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -10,8 +9,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-
-	"github.com/google/uuid"
 )
 
 type LogLevel int
@@ -173,7 +170,7 @@ func (a *AppLogger) LogStartup(config map[string]interface{}) {
 		simulatorMode = s
 	}
 
-	a.Info("bridge-devices-pos started", map[string]interface{}{
+	a.Info("bridge-pointofsale started", map[string]interface{}{
 		"environment":    a.environment,
 		"version":        a.version,
 		"vendor":         vendor,
@@ -262,15 +259,6 @@ func (a *AppLogger) LogDataLoss(operation string, lostCount int, details map[str
 
 // ===== DETAILED TRACKING (DEBUG LEVEL) =====
 
-// ETag creation details - useful for debugging and simulation
-func (a *AppLogger) LogETagCreated(etagData []byte) {
-	humanReadable := a.makeETagHumanReadable(etagData)
-
-	a.Debug("etag created", map[string]interface{}{
-		"etag": humanReadable,
-	})
-}
-
 // Bridge delivery confirmation - always important for production
 func (a *AppLogger) LogBridgeResponse(etagID string, statusCode int, responseTime time.Duration, success bool) {
 	if success {
@@ -286,24 +274,6 @@ func (a *AppLogger) LogBridgeResponse(etagID string, statusCode int, responseTim
 			"status_code": statusCode,
 			"response_ms": responseTime.Milliseconds(),
 		}, nil)
-	}
-}
-
-// Simulation mode logging - more verbose for development
-func (a *AppLogger) LogETagCreatedSimulation(etagData []byte, simulationMode bool) {
-	humanReadable := a.makeETagHumanReadable(etagData)
-
-	if simulationMode {
-		// In simulation mode, promote to INFO for visibility
-		a.Info("etag created (simulation)", map[string]interface{}{
-			"etag":            humanReadable,
-			"simulation_mode": true,
-		})
-	} else {
-		// Production mode - keep as DEBUG
-		a.Debug("etag created", map[string]interface{}{
-			"etag": humanReadable,
-		})
 	}
 }
 
@@ -429,37 +399,6 @@ func (a *AppLogger) LogRateLimitTriggered(component string, currentRate, maxRate
 		"current_rate": currentRate,
 		"max_rate":     maxRate,
 	})
-}
-
-// Helper functions
-func (a *AppLogger) makeETagHumanReadable(etagData []byte) string {
-	if len(etagData) < 48 {
-		return fmt.Sprintf("invalid_etag_size_%d", len(etagData))
-	}
-
-	header := etagData[:48]
-	payloadSize := len(etagData) - 48
-
-	// Decode meaningful header fields
-	etagType := string(header[0:4])
-	cameraID := binary.LittleEndian.Uint32(header[16:20])
-	namespace := binary.LittleEndian.Uint32(header[20:24])
-	flags := binary.LittleEndian.Uint32(header[24:28])
-
-	// Extract and format UUID
-	var embeddedUUID uuid.UUID
-	copy(embeddedUUID[:], header[28:44])
-
-	sequence := binary.LittleEndian.Uint16(header[44:46])
-
-	return fmt.Sprintf("type=%s uuid=%s esn=%08x ns=%d seq=%d payload=%db flags=%x",
-		etagType,
-		embeddedUUID.String()[:8], // First 8 chars of UUID for brevity
-		cameraID,
-		namespace,
-		sequence,
-		payloadSize,
-		flags)
 }
 
 func getMapKeys(m map[string]interface{}) []string {

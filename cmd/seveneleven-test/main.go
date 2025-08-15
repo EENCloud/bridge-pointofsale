@@ -1,7 +1,7 @@
 package main
 
 import (
-	"bridge-devices-pos/internal/vendors/seveneleven"
+	"bridge-pointofsale/internal/vendors/seveneleven"
 	"bufio"
 	"encoding/json"
 	"fmt"

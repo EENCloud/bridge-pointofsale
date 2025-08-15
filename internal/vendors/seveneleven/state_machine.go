@@ -4,7 +4,7 @@ package seveneleven
 Seven-Eleven POS State Machine with Simplified Timeout Strategy:
 
 TIMEOUT RULES:
-1. General transactions: 1-minute timeout → ABANDONED (generous and kind)
+1. General transactions: 1-minute timeout → ABANDONED
 2. CCEOT (cartChangeTrail endOfTransaction): 10-second timer → Good transaction
    - If CCEOT seen, start 10-second timer
    - If no other events within 10 seconds → send NS91 as good transaction
@@ -68,6 +68,7 @@ type POSTransactionState struct {
 	EndCMD                      string
 	OtherEvents                 []map[string]interface{} // ALL other event types (generic) - includes transactionFooter
 	PendingEventsForAggregation []map[string]interface{} // Events waiting for happy start triad
+	SeqCounter                  uint16                   // Simple counter for sequence numbers
 }
 
 type UnknownEventGroup struct {
@@ -91,13 +92,12 @@ type IPBasedStateMachine struct {
 	ipStates map[string]*IPState
 	mutex    sync.RWMutex
 
-	ns91Queue     chan<- ETagResult
-	ns92Queue     chan<- ETagResult
-	processor     ANNTProcessor
-	esn           string
-	ipToESN       map[string]string
-	staticMapping map[string]string // Static mappings that take precedence
-	logger        *log.Logger
+	ns91Queue chan<- ETagResult
+	ns92Queue chan<- ETagResult
+	processor ANNTProcessor
+	esn       string
+	ipToESN   map[string]string
+	logger    *log.Logger
 }
 
 func NewIPBasedStateMachine(ns91Queue, ns92Queue chan<- ETagResult, logger *log.Logger) *IPBasedStateMachine {
@@ -133,68 +133,14 @@ func (sm *IPBasedStateMachine) SetIPESNMappings(mappings map[string]string) {
 	}
 }
 
-// SetIPESNMappingsReplaceStatic replaces all mappings including static ones (for real configs in sim mode)
-func (sm *IPBasedStateMachine) SetIPESNMappingsReplaceStatic(mappings map[string]string) {
-	if sm.ipToESN == nil {
-		sm.ipToESN = make(map[string]string)
-	}
-
-	// Clear static mappings when real configs arrive
-	sm.staticMapping = nil
-
-	// Replace all mappings with new ones
-	sm.ipToESN = make(map[string]string)
-	for ip, esn := range mappings {
-		sm.ipToESN[ip] = esn
-	}
-
-	sm.logger.Info("Replaced static mappings with real config mappings")
-}
-
-// SetStaticIPESNMappings sets static mappings that take precedence over dynamic ones
-func (sm *IPBasedStateMachine) SetStaticIPESNMappings(mappings map[string]string) {
-	sm.staticMapping = make(map[string]string)
-	for ip, esn := range mappings {
-		sm.staticMapping[ip] = esn
-	}
-
-	// Update the active mappings to include static ones
-	if sm.ipToESN == nil {
-		sm.ipToESN = make(map[string]string)
-	}
-	for ip, esn := range mappings {
-		sm.ipToESN[ip] = esn
-	}
-}
-
 func (sm *IPBasedStateMachine) AddIPESNMapping(ip, esn string) {
 	if sm.ipToESN == nil {
 		sm.ipToESN = make(map[string]string)
 	}
 
-	// Dynamic configs can override static mappings (simulation baseline behavior)
+	// Dynamic configs from real configuration
 	sm.ipToESN[ip] = esn
 	sm.logger.Infof("Added ESN %s for IP %s", esn, ip)
-}
-
-// ClearStaticMappings removes static baseline mappings (called when first real config arrives)
-func (sm *IPBasedStateMachine) ClearStaticMappings() {
-	sm.mutex.Lock()
-	defer sm.mutex.Unlock()
-
-	if sm.staticMapping != nil {
-		staticCount := len(sm.staticMapping)
-
-		// Remove static mappings from active mappings
-		for ip := range sm.staticMapping {
-			delete(sm.ipToESN, ip)
-		}
-
-		// Clear static mapping reference
-		sm.staticMapping = nil
-
-		sm.logger.Infof("Cleared %d static baseline mappings - now using only real configs", staticCount)
-	}
 }
 
 // GetIPESNMappings returns a copy of the current IP-to-ESN mappings
@@ -435,6 +381,7 @@ func (sm *IPBasedStateMachine) handleTransactionEvent(ipState *IPState, transact
 			LastActivity:                now,
 			OtherEvents:                 make([]map[string]interface{}, 0),
 			PendingEventsForAggregation: make([]map[string]interface{}, 0),
+			SeqCounter:                  1,
 		}
 
 		// Link pending StartTransaction if available
@@ -456,40 +403,7 @@ func (sm *IPBasedStateMachine) handleTransactionEvent(ipState *IPState, transact
 
 	// RULE: Handle metadata events - this is where we determine duplicate vs new transactions
 	if _, ok := eventData["metaData"]; ok {
-		// Check for duplicate: if transaction with same sequence already has metadata
-		if transaction.MetaData != nil {
-			// Same txnSeq seen again → ABANDONED status (register retry failed)
-			status := StatusAbandoned
-			sm.sendToNS91(transaction, &status)
-
-			// Clear the old transaction and start fresh with same sequence
-			delete(ipState.ActiveTransactions, transactionSeq)
-			transaction = &POSTransactionState{
-				TransactionSeq: transactionSeq,
-				RegisterIP:     ipState.RegisterIP,
-				StartedAt:      now,
-				LastActivity:   now,
-				OtherEvents:    make([]map[string]interface{}, 0),
-			}
-
-			// Link pending StartTransaction if available
-			if ipState.PendingStartTransaction != nil {
-				transaction.CMD = *ipState.PendingStartTransaction
-				ipState.PendingStartTransaction = nil
-			}
-
-			ipState.ActiveTransactions[transactionSeq] = transaction
-		} else {
-			// Check for ABANDONED: if there are other incomplete transactions on this IP
-			for otherSeq, otherTx := range ipState.ActiveTransactions {
-				if otherSeq != transactionSeq && otherTx.MetaData != nil && !otherTx.IsComplete {
-					// Mark the other transaction as ABANDONED (full aggregate to NS91)
-					status := StatusAbandoned
-					sm.sendToNS91(otherTx, &status)
-					delete(ipState.ActiveTransactions, otherSeq)
-				}
-			}
-		}
+		// No retry detection - just store metadata (let timeout cleanup handle any issues)
 		transaction.MetaData = eventData
 	} else if _, ok := eventData["transactionHeader"]; ok {
 		transaction.TransactionHeader = eventData
@@ -614,7 +528,7 @@ func (sm *IPBasedStateMachine) handleUnknownEvent(ipState *IPState, eventData ma
 }
 
 func (sm *IPBasedStateMachine) cleanupOldUnknownEvents(ipState *IPState) {
-	cutoff := time.Now().Add(-30 * time.Second)
+	cutoff := time.Now().Add(-60 * time.Second)
 	for windowKey, group := range ipState.UnknownEventGroups {
 		if group.LastActivity.Before(cutoff) {
 			sm.flushUnknownEventGroup(group)
@@ -626,8 +540,8 @@ func (sm *IPBasedStateMachine) cleanupOldUnknownEvents(ipState *IPState) {
 func (sm *IPBasedStateMachine) cleanupAbandonedTransactions(ipState *IPState) {
 	now := time.Now()
 
-	// 30 second general timeout - faster cleanup
-	generalTimeout := now.Add(-30 * time.Second)
+	// 1 minute general timeout
+	generalTimeout := now.Add(-60 * time.Second)
 
 	// 10 seconds after CCEOT - quick completion for likely finished transactions
 	ccEndTimeout := now.Add(-10 * time.Second)
@@ -728,6 +642,7 @@ func (sm *IPBasedStateMachine) flushUnknownEventGroup(group *UnknownEventGroup) 
 		RegisterIP:     group.RegisterIP,
 		TransactionSeq: "", // No sequence for unknown events
 		OtherEvents:    group.Events,
+		SeqCounter:     1,
 	}
 
 	sm.sendToNS91(fakeTransaction, &status)
@@ -816,7 +731,7 @@ func (sm *IPBasedStateMachine) sendToNS91(transaction *POSTransactionState, stat
 
 	if sm.processor != nil {
 		state := &TransactionState{
-			UUID: sm.GenerateETagBinaryUUID(transaction.RegisterIP, transaction.TransactionSeq, transaction.MetaData),
+			UUID: sm.GenerateETagUUID(transaction.RegisterIP, transaction.TransactionSeq, transaction.MetaData),
 			Seq:  uint16(len(transaction.OtherEvents) + 4),
 			ESN:  sm.getESNForIP(transaction.RegisterIP),
 		}
@@ -832,23 +747,25 @@ func (sm *IPBasedStateMachine) sendToNS91(transaction *POSTransactionState, stat
 	}
 }
 
-func (sm *IPBasedStateMachine) sendToNS92(eventData map[string]interface{}, registerIP, transactionSeq string, status *TransactionStatus) {
+func (sm *IPBasedStateMachine) sendToNS92(eventData map[string]interface{}, transaction *POSTransactionState, status *TransactionStatus) {
 
 	etag := ETagResult{
-		ID:             sm.GenerateETagIDFromEvent(registerIP, transactionSeq, eventData),
-		RegisterIP:     registerIP,
-		TransactionSeq: transactionSeq,
+		ID:             sm.GenerateETagIDFromEvent(transaction.RegisterIP, transaction.TransactionSeq, eventData),
+		RegisterIP:     transaction.RegisterIP,
+		TransactionSeq: transaction.TransactionSeq,
 		Namespace:      92,
 		Status:         status,
 		CreatedAt:      time.Now(),
-		ESN:            sm.getESNForIP(registerIP),
+		ESN:            sm.getESNForIP(transaction.RegisterIP),
 	}
 
 	if sm.processor != nil {
+		currentSeq := transaction.SeqCounter
+		transaction.SeqCounter++
 		state := &TransactionState{
-			UUID: sm.GenerateETagBinaryUUID(registerIP, transactionSeq, eventData),
-			Seq:  1,
-			ESN:  sm.getESNForIP(registerIP),
+			UUID: sm.GenerateETagUUID(transaction.RegisterIP, transaction.TransactionSeq, eventData),
+			Seq:  currentSeq,
+			ESN:  sm.getESNForIP(transaction.RegisterIP),
 		}
 
 		if anntData, err := sm.processor.CreateANNTStructure(eventData, state, 92); err == nil {
@@ -886,7 +803,7 @@ func (sm *IPBasedStateMachine) sendCombinedStartTriadNS92(transaction *POSTransa
 	combinedEvent := map[string]interface{}{
 		"_pos": posData,
 	}
-	sm.sendToNS92(combinedEvent, transaction.RegisterIP, transaction.TransactionSeq, nil)
+	sm.sendToNS92(combinedEvent, transaction, nil)
 }
 
 func (sm *IPBasedStateMachine) sendType1BNS92(transaction *POSTransactionState, eventData map[string]interface{}) {
@@ -912,7 +829,7 @@ func (sm *IPBasedStateMachine) sendType1BNS92(transaction *POSTransactionState, 
 		"_pos": posData,
 	}
 
-	sm.sendToNS92(enrichedEvent, transaction.RegisterIP, transaction.TransactionSeq, nil)
+	sm.sendToNS92(enrichedEvent, transaction, nil)
 }
 
 func extractTransactionSeq(eventData map[string]interface{}) string {
@@ -948,9 +865,9 @@ func (sm *IPBasedStateMachine) GenerateETagIDFromEvent(registerIP, transactionSe
 	return uuid.New().String()
 }
 
-// GenerateETagBinaryUUID creates the UUID for the ETag header (binary field)
-// This can be the same logic but returns the actual UUID for binary embedding
-func (sm *IPBasedStateMachine) GenerateETagBinaryUUID(registerIP, transactionSeq string, eventData map[string]interface{}) uuid.UUID {
+// GenerateETagUUID creates the UUID for the ETag header
+// This can be the same logic but returns the actual UUID for embedding
+func (sm *IPBasedStateMachine) GenerateETagUUID(registerIP, transactionSeq string, eventData map[string]interface{}) uuid.UUID {
 	// Try UUIDv5 if this event has complete metaData
 	if metaData, ok := eventData["metaData"].(map[string]interface{}); ok {
 		if store, hasStore := metaData["storeNumber"].(string); hasStore && store != "" {

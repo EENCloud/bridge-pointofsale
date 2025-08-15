@@ -9,15 +9,21 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    
+
     steps:
     - uses: actions/checkout@v4
-    
+
+    - name: Checkout goeen dependency
+      uses: actions/checkout@v4
+      with:
+        repository: EENCloud/goeen
+        path: goeen
+
     - name: Set up Go
       uses: actions/setup-go@v4
       with:
         go-version: '1.23'
-    
+
     - name: Cache Go modules
       uses: actions/cache@v3
       with:
@@ -25,26 +31,33 @@ jobs:
         key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
         restore-keys: |
           ${{ runner.os }}-go-
-    
-    
+
+    - name: Download Go modules
+      run: go mod download
+
     - name: Run linting on production code
-      uses: golangci/golangci-lint-action@v3
+      uses: golangci/golangci-lint-action@v7
       with:
-        version: latest
-        working-directory: .
-        args: --config .golangci.yml ./internal/... ./cmd/bridge-devices-pos/...
+        version: v2.1.6
+        args: --timeout=5m --enable=errcheck,govet,ineffassign,staticcheck,unused,misspell ./internal/... ./cmd/bridge-pointofsale/...
 
   build:
     runs-on: ubuntu-latest
     needs: test
-    
+
     steps:
     - uses: actions/checkout@v4
-    
+
+    - name: Checkout goeen dependency
+      uses: actions/checkout@v4
+      with:
+        repository: EENCloud/goeen
+        path: goeen
+
     - name: Set up Go
       uses: actions/setup-go@v4
       with:
         go-version: '1.23'
-    
+
     - name: Build application
-      run: go build -v ./cmd/bridge-devices-pos 
+      run: go build -v ./cmd/bridge-pointofsale

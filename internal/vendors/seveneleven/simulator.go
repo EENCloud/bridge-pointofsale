@@ -27,34 +27,8 @@ type Simulator struct {
 	stopped         bool
 	stopMutex       sync.Mutex
 
-	// Unified simulation options
-	assignedLogFile string // Single log file assigned to this ESN
-	realTimeMode    bool   // Controls timestamp fudging only (NEVER modify transaction sequences)
-}
-
-func NewSimulator(logger *log.Logger, targetURL string, trafficIPs []string) *Simulator {
-	// Backward compatibility: default to all files with fudging
-	return NewSimulatorWithOptions(logger, targetURL, trafficIPs, "", true)
-}
-
-// NewSimulatorWithOptions creates a simulator with specific options for unified simulation
-func NewSimulatorWithOptions(logger *log.Logger, targetURL string, trafficIPs []string, logFile string, realTime bool) *Simulator {
-	// Empty maps for backward compatibility
-	ipToTerminal, ipToStoreNumber := map[string]string{}, map[string]string{}
-
-	return &Simulator{
-		logger:          logger,
-		targetURL:       targetURL,
-		dataDir:         "data/7eleven/register_logs/extracted_jsonl",
-		trafficIPs:      trafficIPs,
-		ipToTerminal:    ipToTerminal,
-		ipToStoreNumber: ipToStoreNumber,
-		stopChan:        make(chan struct{}),
-		stopped:         false,
-		stopMutex:       sync.Mutex{},
-		assignedLogFile: logFile,
-		realTimeMode:    realTime,
-	}
+	// Modulo simulation options
+	realTimeMode bool // Controls timestamp fudging only (NEVER modify transaction sequence numbers)
 }
 
 // NewSimulatorWithMappings creates a simulator with IP-to-terminal/store mappings
@@ -78,7 +52,6 @@ func NewSimulatorWithMappings(logger *log.Logger, targetURL string, trafficIPs [
 		stopChan:        make(chan struct{}),
 		stopped:         false,
 		stopMutex:       sync.Mutex{},
-		assignedLogFile: logFile,
 		realTimeMode:    realTime,
 	}
 }
@@ -91,26 +64,34 @@ func (s *Simulator) Start() error {
 	}
 	s.stopMutex.Unlock()
 
-	if s.assignedLogFile != "" {
-		// Unified mode: Single assigned log file per ESN
-		s.logger.Infof("Starting unified simulator: assigned file=%s, real_time=%t", s.assignedLogFile, s.realTimeMode)
+	// Modulo-only mode: Each IP uses register file based on its terminal number
+	s.logger.Infof("Starting modulo simulator: real_time=%t", s.realTimeMode)
 
-		for _, sourceIP := range s.trafficIPs {
-			go s.simulateRegisterUnified(s.assignedLogFile, sourceIP)
+	registerFiles := []string{
+		"register_1.jsonl", "register_2.jsonl", "register_3.jsonl",
+		"register_4.jsonl", "register_5.jsonl",
+	}
+
+	for _, sourceIP := range s.trafficIPs {
+		// Get terminal number for this IP
+		terminalNumber := s.ipToTerminal[sourceIP]
+		if terminalNumber == "" {
+			s.logger.Errorf("No terminal number found for IP %s", sourceIP)
+			continue
 		}
-	} else {
-		// Backward compatibility: Cycle through all files
-		s.logger.Info("Starting simulator in compatibility mode (all files)...")
 
-		registerFiles := []string{
-			"register_1.jsonl", "register_2.jsonl", "register_3.jsonl",
-			"register_4.jsonl", "register_5.jsonl",
-		}
-
-		for _, sourceIP := range s.trafficIPs {
-			for _, registerFile := range registerFiles {
-				go s.simulateRegister(registerFile, sourceIP)
+		// Calculate modulo assignment: terminal number -> register file
+		if terminalNum, err := strconv.Atoi(terminalNumber); err == nil {
+			fileIndex := (terminalNum - 1) % 5 // terminals 1-5 map to indices 0-4
+			if fileIndex < 0 {
+				fileIndex = 0 // Handle negative numbers
 			}
+			assignedFile := registerFiles[fileIndex]
+
+			s.logger.Infof("IP %s (terminal %s) -> %s", sourceIP, terminalNumber, assignedFile)
+			go s.simulateRegisterUnified(assignedFile, sourceIP)
+		} else {
+			s.logger.Errorf("Invalid terminal number '%s' for IP %s", terminalNumber, sourceIP)
 		}
 	}
 
@@ -186,107 +167,6 @@ func (s *Simulator) simulateRegisterUnified(filename, sourceIP string) {
 
 		s.logger.Debugf("Completed cycle for %s - %d events posted, restarting...", filename, lineCount)
 	}
-}
-
-func (s *Simulator) simulateRegister(filename, sourceIP string) {
-	filePath := filepath.Join(s.dataDir, filename)
-	s.logger.Infof("Starting simulation for %s from IP %s", filename, sourceIP)
-
-	file, err := os.Open(filePath)
-	if err != nil {
-		s.logger.Errorf("Failed to open %s: %v", filename, err)
-		return
-	}
-	defer func() { _ = file.Close() }()
-
-	scanner := bufio.NewScanner(file)
-	lineCount := 0
-
-	for scanner.Scan() {
-		// Check if we should stop
-		select {
-		case <-s.stopChan:
-			s.logger.Infof("Stopping simulation for %s from IP %s", filename, sourceIP)
-			return
-		default:
-		}
-
-		line := scanner.Text()
-		if line == "" {
-			continue
-		}
-
-		if err := s.postJSON(line, sourceIP); err != nil {
-			s.logger.Errorf("Failed to post JSON from %s: %v", filename, err)
-		} else {
-			lineCount++
-			if lineCount%50 == 0 {
-				s.logger.Infof("%s: Posted %d JSON events", filename, lineCount)
-			}
-		}
-
-		// Sleep with early exit on stop signal
-		select {
-		case <-s.stopChan:
-			s.logger.Infof("Stopping simulation for %s from IP %s", filename, sourceIP)
-			return
-		case <-time.After(1000 * time.Millisecond):
-		}
-	}
-
-	if err := scanner.Err(); err != nil {
-		s.logger.Errorf("Error reading %s: %v", filename, err)
-	}
-
-	s.logger.Infof("Completed simulation for %s - %d events posted", filename, lineCount)
-}
-
-func (s *Simulator) postJSON(jsonData, sourceIP string) error {
-	// No blocking in simplified simulator
-
-	maxRetries := 5
-	initialDelay := 100 * time.Millisecond
-
-	// Parse JSON to check for transactionSeqNumber and update timestamps
-	var data map[string]interface{}
-	if err := json.Unmarshal([]byte(jsonData), &data); err == nil {
-		// Check if this has metadata with transactionSeqNumber
-		if metaData, ok := data["metaData"].(map[string]interface{}); ok {
-			// Override terminal number and store number based on IP
-			if terminalNumber, exists := s.ipToTerminal[sourceIP]; exists {
-				metaData["terminalNumber"] = terminalNumber
-			}
-			if storeNumber, exists := s.ipToStoreNumber[sourceIP]; exists {
-				metaData["storeNumber"] = storeNumber
-			}
-			// NEVER modify transactionSeqNumber - preserve original values exactly
-		}
-
-		// Always update ALL timestamp fields to current time (recursive search)
-		s.updateAllTimestamps(data)
-
-		// Re-marshal the modified JSON
-		if modifiedJSON, err := json.Marshal(data); err == nil {
-			jsonData = string(modifiedJSON)
-		}
-	}
-
-	targetURL := s.targetURL + "/" + sourceIP
-
-	for i := 0; i < maxRetries; i++ {
-		resp, err := http.Post(targetURL, "application/json", bytes.NewBufferString(jsonData))
-		if err == nil {
-			defer func() { _ = resp.Body.Close() }()
-			if resp.StatusCode != http.StatusOK {
-				return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
-			}
-			return nil
-		}
-
-		s.logger.Errorf("Attempt %d to post JSON failed: %v. Retrying in %v...", i+1, err, initialDelay*(time.Duration(1<<i)))
-		time.Sleep(initialDelay * (time.Duration(1 << i)))
-	}
-	return fmt.Errorf("failed to post JSON after %d retries", maxRetries)
 }
 
 // postJSONUnified posts JSON with REAL_TIME control over fudging

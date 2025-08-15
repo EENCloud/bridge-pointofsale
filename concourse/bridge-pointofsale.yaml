@@ -1,0 +1,104 @@
+docker: &docker
+    username: ((harbor.username))
+    password: ((harbor.password))
+github: &github
+    private_key: ((github.private_key))
+
+resources:
+  - name: git-release
+    type: git
+    source:
+      uri: git@github.com:EENCloud/bridge-pointofsale.git
+      fetch_tags: true
+      tag_regex: '^(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)\.(0|[1-9][0-9]*)(-((0|[1-9][0-9]*|[0-9]*[a-zA-Z-][0-9a-zA-Z-]*)(\.(0|[1-9][0-9]*|[0-9]*[a-zA-Z-][0-9a-zA-Z-]*))*))?(\+([0-9a-zA-Z-]+(\.[0-9a-zA-Z-]+)*))?$'
+      <<: *github
+
+  - name: git-staging
+    type: git
+    source:
+      uri: git@github.com:EENCloud/bridge-pointofsale.git
+      branch: staging
+      <<: *github
+
+  - name: image-release
+    type: docker-image
+    source:
+        repository: harbor.eencloud.com/bridge/bridge-pointofsale
+        <<: *docker
+
+  - name: image-staging
+    type: docker-image
+    source:
+        repository: harbor.eencloud.com/bridge-staging/bridge-pointofsale
+        <<: *docker
+
+jobs:
+  - name: build
+    plan:
+      - get: git-release
+        trigger: true
+      - task: get-version
+        config:
+          platform: linux
+          image_resource:
+            type: registry-image
+            source:
+              repository: alpine/git
+          inputs:
+            - name: git-release
+          outputs:
+            - name: version
+          run:
+            path: sh
+            args:
+              - -c
+              - |
+                cd git-release
+                TAG=$(git describe --tags 2>/dev/null || echo "release-$(git rev-parse --short HEAD)")
+                echo $TAG > ../version/tag
+      - put: image-release
+        params:
+            build: git-release
+            cache: true
+            cache_tag: latest
+            tag_file: version/tag
+            tag_as_latest: true
+            docker_buildkit: 1
+        get_params:
+            skip_download: true
+
+  - name: build-staging
+    plan:
+      - get: git-staging
+        trigger: true
+      - task: get-version
+        config:
+          platform: linux
+          image_resource:
+            type: registry-image
+            source:
+              repository: alpine/git
+          inputs:
+            - name: git-staging
+          outputs:
+            - name: version
+          run:
+            path: sh
+            args:
+              - -c
+              - |
+                cd git-staging
+                TAG=$(git describe --dirty --tags 2>/dev/null || echo "staging-$(git rev-parse --short HEAD)")
+                echo $TAG > ../version/tag
+      - put: image-staging
+        params:
+            build: git-staging
+            cache: true
+            cache_tag: staging
+            tag_file: version/tag
+            tag_as_latest: false
+            docker_buildkit: 1
+        get_params:
+            skip_download: true
+
+

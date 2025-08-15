@@ -57,7 +57,10 @@ func TestProcessor_CreateANNTStructure(t *testing.T) {
 	if result["ns"] != 91 {
 		t.Error("EndTransaction should have ns=91")
 	}
-	if result["seq"] != 0 {
-		t.Error("NS91 should have seq=0")
+	if result["seq"] != 5 {
+		t.Error("NS91 should use current sequence number")
+	}
+	if state.Seq != 6 {
+		t.Errorf("State seq should be incremented to 6, got %d", state.Seq)
 	}
 }

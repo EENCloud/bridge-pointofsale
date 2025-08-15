@@ -1,8 +1,8 @@
 package seveneleven
 
 import (
-	"bridge-devices-pos/internal/api"
-	"bridge-devices-pos/internal/core"
+	"bridge-pointofsale/internal/api"
+	"bridge-pointofsale/internal/core"
 	"context"
 	"encoding/json"
 	"fmt"

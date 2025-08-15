@@ -2,10 +2,10 @@ version: '2'
 
 services:
   point_of_sale:
-    image: bridge-devices-pos:latest
+    image: point_of_sale:latest
     container_name: point_of_sale
     environment:
-      - MODE=simulation
+      - MODE=production
       - REAL_TIME=false
       - SIM_TEST_PORT=6334
       - PRODUCTION_PORT=6334

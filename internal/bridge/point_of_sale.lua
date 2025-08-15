@@ -75,7 +75,7 @@ end
 
 local function get_events_callback(c2, http_result, curl_result)
 	E.Curl = nil
-	EENLog.info("POS HTTP: %d (curl: %d)", http_result, curl_result)
+	-- EENLog.info("POS HTTP: %d (curl: %d)", http_result, curl_result)
 
 	if http_result == 200 then
 		EENEnv.after(get_events, 0.1)

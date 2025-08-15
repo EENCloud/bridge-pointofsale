@@ -1,7 +1,7 @@
 package seveneleven
 
 import (
-	"bridge-devices-pos/internal/core"
+	"bridge-pointofsale/internal/core"
 	"encoding/json"
 	"os"
 	"testing"
@@ -45,8 +45,8 @@ func TestANNTArchitecture(t *testing.T) {
 			t.Errorf("Expected ns=91, got %v", anntStruct["ns"])
 		}
 
-		if anntStruct["seq"] != 0 {
-			t.Errorf("Expected seq=0 for NS91, got %v", anntStruct["seq"])
+		if anntStruct["seq"] != 1 {
+			t.Errorf("Expected seq=1 for first ANNT, got %v", anntStruct["seq"])
 		}
 
 		if anntStruct["uuid"] == nil {

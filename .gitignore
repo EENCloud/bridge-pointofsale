@@ -1,5 +1,5 @@
 # Build artifacts
-bridge-devices-pos
+/bridge-pointofsale
 dist/
 
 # Binaries for programs and plugins

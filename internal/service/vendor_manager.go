@@ -1,9 +1,9 @@
 package service
 
 import (
-	"bridge-devices-pos/internal/core"
-	"bridge-devices-pos/internal/settings"
-	"bridge-devices-pos/internal/vendors"
+	"bridge-pointofsale/internal/core"
+	"bridge-pointofsale/internal/settings"
+	"bridge-pointofsale/internal/vendors"
 	"context"
 	"encoding/json"
 

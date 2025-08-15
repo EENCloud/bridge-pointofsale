@@ -13,8 +13,8 @@ func TestGetDataDirectory(t *testing.T) {
 		t.Error("Expected non-empty data directory")
 	}
 
-	// Should contain "bridge-devices-pos" in the path
-	if !strings.Contains(dir, "bridge-devices-pos") {
-		t.Errorf("Expected data directory to contain 'bridge-devices-pos', got '%s'", dir)
+	// Should contain "bridge-pointofsale" in the path
+	if !strings.Contains(dir, "bridge-pointofsale") {
+		t.Errorf("Expected data directory to contain 'bridge-pointofsale', got '%s'", dir)
 	}
 }
