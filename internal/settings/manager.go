@@ -18,7 +18,7 @@ type BridgePayload struct {
 type ESNBridgeConfig struct {
 	ESN    string                 `json:"esn"`
 	Config map[string]interface{} `json:"config"` // Raw bridge format
-	Vendor *VendorConfig          `json:"vendor"` // Generated vendor config for compatibility
+	Vendor *VendorConfig          `json:"vendor"` // Generated vendor config
 }
 
 // VendorConfig defines the structure for a single vendor's configuration block.
@@ -29,13 +29,11 @@ type VendorConfig struct {
 }
 
 // FullPayload defines the structure of the entire JSON posted from bridge-core.
-// Deprecated: kept for compatibility but prefer BridgePayload for new code
 type FullPayload struct {
 	Vendors []VendorConfig `json:"vendors"`
 }
 
 // ESNVendorConfig stores configuration for a specific ESN
-// Deprecated: kept for compatibility but prefer ESNBridgeConfig for new code
 type ESNVendorConfig struct {
 	ESN    string        `json:"esn"`
 	Vendor *VendorConfig `json:"vendor"`
@@ -77,20 +75,21 @@ func (m *Manager) UpdateSettings(esn string, payload []byte) error {
 
 	if registers, ok := bridgeConfig["7eleven_registers"]; ok {
 		if registersArray, ok := registers.([]interface{}); ok && len(registersArray) > 0 {
-			hasConfig = true
+			cleanedArray := deduplicateRegisters(registersArray)
+			if len(cleanedArray) > 0 {
+				hasConfig = true
+				defaultPort := 6334
 
-			// Generate VendorConfig for compatibility with existing vendor system
-			defaultPort := 6334
+				registersJSON, err := json.Marshal(cleanedArray)
+				if err != nil {
+					return fmt.Errorf("failed to marshal registers: %w", err)
+				}
 
-			registersJSON, err := json.Marshal(registersArray)
-			if err != nil {
-				return fmt.Errorf("failed to marshal registers: %w", err)
-			}
-
-			generatedVendor = &VendorConfig{
-				Vendor:     "7eleven_registers",
-				ListenPort: defaultPort,
-				Registers:  json.RawMessage(registersJSON),
+				generatedVendor = &VendorConfig{
+					Vendor:     "7eleven_registers",
+					ListenPort: defaultPort,
+					Registers:  json.RawMessage(registersJSON),
+				}
 			}
 		}
 	}
@@ -102,7 +101,7 @@ func (m *Manager) UpdateSettings(esn string, payload []byte) error {
 		m.esnConfigs[esn] = &ESNBridgeConfig{
 			ESN:    esn,
 			Config: bridgeConfig,
-			Vendor: generatedVendor, // For compatibility
+			Vendor: generatedVendor,
 		}
 
 		// Activate vendor (single implementation)
@@ -120,7 +119,10 @@ func (m *Manager) UpdateSettings(esn string, payload []byte) error {
 		m.logger.Infof("ESN %s deactivating vendor configuration", esn)
 		delete(m.esnConfigs, esn)
 
-		// If no more ESNs have configurations, deactivate the vendor
+		if m.updateCallback != nil {
+			m.updateCallback(esn, nil)
+		}
+
 		if len(m.esnConfigs) == 0 {
 			m.logger.Info("No active ESN configurations. Deactivating vendor.")
 			m.activeVendor = nil
@@ -173,4 +175,25 @@ func (m *Manager) notifyChange() {
 	case m.changeChan <- struct{}{}:
 	default:
 	}
+}
+
+func deduplicateRegisters(registers []interface{}) []interface{} {
+	seen := make(map[string]bool)
+	result := make([]interface{}, 0, len(registers))
+
+	for _, reg := range registers {
+		if regMap, ok := reg.(map[string]interface{}); ok {
+			if ip, hasIP := regMap["ip_address"].(string); hasIP {
+				if terminal, hasTerminal := regMap["terminal_number"].(string); hasTerminal {
+					key := ip + ":" + terminal
+					if !seen[key] {
+						seen[key] = true
+						result = append(result, reg)
+					}
+				}
+			}
+		}
+	}
+
+	return result
 }

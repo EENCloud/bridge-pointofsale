@@ -3216,3 +3216,64 @@
 {"cartChangeTrail":{"timeStamp":"2025-07-20T18:14:52","eventType":"addLineItem","eventSeq":1,"itemName":"DM Oranges","itemId":172555,"departmentId":"170301","price":-1.29,"quantity":1,"transactionLineId":1}}
 {"cartChangeTrail":{"timeStamp":"2025-07-20T18:14:54","eventType":"finalizeAndPay","eventSeq":2,"eventResult":"payNow"}}
 {"transactionSummary":[{"details":"-$1.29","description":"SUBTOTAL"},{"details":"-$1.29","description":"REFUND DUE"}]}
+{"CMD":"StartTransaction"}
+{"metaData":{"storeNumber":"38551","terminalNumber":"04","timeStamp":"2025-08-13T15:52:37","transactionSeqNumber":"0558","transactionType":"Sale","operator":"OP"}}
+{"transactionHeader":{"headerLines":["7 ELEVEN","8800 HARMON ROAD","FORT WORTH TX 76177","Ph: 6822842773","STORE#: 38551","THANKS FOR YOUR BUSINESS!","NO RETURNS ON PHONE ACCESSORIES,TOBACCO",""]}}
+{"cartChangeTrail":{"timeStamp":"2025-08-13T20:52:37","eventType":"addLineItem","eventSeq":1,"itemName":"Ring Donut Frosted Chocolate","itemId":173246,"departmentId":"170701","price":1.69,"quantity":1,"transactionLineId":1}}
+{"cartChangeTrail":{"timeStamp":"2025-08-13T20:52:38","eventType":"addLineItem","eventSeq":2,"itemName":"DMBanana24ctDMBanana24ctDMBanana24ctDMBanana24ctDMBanana24ctDMBanana24ct","itemId":171935,"departmentId":"170301","price":0.89,"quantity":1,"transactionLineId":2}}
+{"cartChangeTrail":{"timeStamp":"2025-08-13T20:52:40","eventType":"finalizeAndPay","eventSeq":3,"eventResult":"payNow"}}
+{"transactionSummary":[{"details":"$2.58","description":"SUBTOTAL"},{"details":"$2.58","description":"TOTAL DUE"}]}
+{"transactionFooter":{"footerLines":null,"memberDetails":[],"footer":["THANK YOU","PLEASE COME AGAIN!","T#04 SCO TRN0558 08/13/2025 15:53 PM"],"transactionStatus":"Aborted"}}
+{"CMD":"EndTransaction"}
+{"CMD":"StartTransaction"}
+{"metaData":{"storeNumber":"38551","terminalNumber":"04","timeStamp":"2025-08-13T16:03:10","transactionSeqNumber":"0560","transactionType":"Sale","operator":"OP41"}}
+{"transactionHeader":{"headerLines":["7 ELEVEN","8800 HARMON ROAD","FORT WORTH TX 76177","Ph: 6822842773","STORE#: 38551","THANKS FOR YOUR BUSINESS!","NO RETURNS ON PHONE ACCESSORIES,TOBACCO",""]}}
+{"cartChangeTrail":{"timeStamp":"2025-08-13T21:03:10","eventType":"addLineItem","eventSeq":1,"itemName":"DMBanana24ctDMBanana24ctDMBanana24ctDMBanana24ctDMBanana24ctDMBanana24ct","itemId":171935,"departmentId":"170301","price":0.89,"quantity":1,"transactionLineId":1}}
+{"cartChangeTrail":{"timeStamp":"2025-08-13T21:03:11","eventType":"updateLineItem","eventSeq":2,"eventResult":"increaseItemQuantity","itemName":"DMBanana24ctDMBanana24ctDMBanana24ctDMBanana24ctDMBanana24ctDMBanana24ct","itemId":171935,"departmentId":"170301","price":0.89,"quantity":1,"transactionLineId":1}}
+{"cartChangeTrail":{"timeStamp":"2025-08-13T21:03:11","eventType":"updateLineItem","eventSeq":3,"eventResult":"increaseItemQuantity","itemName":"DMBanana24ctDMBanana24ctDMBanana24ctDMBanana24ctDMBanana24ctDMBanana24ct","itemId":171935,"departmentId":"170301","price":0.89,"quantity":1,"transactionLineId":1}}
+{"cartChangeTrail":{"timeStamp":"2025-08-13T21:03:11","eventType":"updateLineItem","eventSeq":4,"eventResult":"increaseItemQuantity","itemName":"DMBanana24ctDMBanana24ctDMBanana24ctDMBanana24ctDMBanana24ctDMBanana24ct","itemId":171935,"departmentId":"170301","price":0.89,"quantity":1,"transactionLineId":1}}
+{"cartChangeTrail":{"timeStamp":"2025-08-13T21:03:12","eventType":"addLineItem","eventSeq":5,"itemName":"PROMO Banana 2x","price":1.36,"transactionLineId":1.1}}
+{"transactionSummary":[{"details":"$3.56","description":"SUBTOTAL"},{"details":"-$1.36","description":"DISCOUNT(S)"},{"details":"$2.20","description":"TOTAL DUE"}]}
+{"transactionFooter":{"footerLines":null,"memberDetails":[],"footer":["THANK YOU","PLEASE COME AGAIN!","T#04 SCO TRN0560 08/13/2025 16:04 PM"],"transactionStatus":"Aborted"}}
+{"CMD":"EndTransaction"}
+{"CMD":"StartTransaction"}
+{"metaData":{"storeNumber":"38551","terminalNumber":"04","timeStamp":"2025-08-13T16:04:27","transactionSeqNumber":"0561","transactionType":"Sale","operator":"OP41"}}
+{"transactionHeader":{"headerLines":["7 ELEVEN","8800 HARMON ROAD","FORT WORTH TX 76177","Ph: 6822842773","STORE#: 38551","THANKS FOR YOUR BUSINESS!","NO RETURNS ON PHONE ACCESSORIES,TOBACCO",""]}}
+{"cartChangeTrail":{"timeStamp":"2025-08-13T21:04:27","eventType":"addLineItem","eventSeq":1,"itemName":"DMBanana24ctDMBanana24ctDMBanana24ctDMBanana24ctDMBanana24ctDMBanana24ct","itemId":171935,"departmentId":"170301","price":0.89,"quantity":1,"transactionLineId":1}}
+{"transactionSummary":[{"details":"$0.89","description":"SUBTOTAL"},{"details":"$0.89","description":"TOTAL DUE"}]}
+{"transactionFooter":{"footerLines":null,"memberDetails":[],"footer":["THANK YOU","PLEASE COME AGAIN!","T#04 SCO TRN0561 08/13/2025 16:04 PM"],"transactionStatus":"Aborted"}}
+{"CMD":"EndTransaction"}
+{"CMD":"StartTransaction"}
+{"metaData":{"storeNumber":"38551","terminalNumber":"04","timeStamp":"2025-08-13T16:06:32","transactionSeqNumber":"0562","transactionType":"Sale","operator":"OP41"}}
+{"transactionHeader":{"headerLines":["7 ELEVEN","8800 HARMON ROAD","FORT WORTH TX 76177","Ph: 6822842773","STORE#: 38551","THANKS FOR YOUR BUSINESS!","NO RETURNS ON PHONE ACCESSORIES,TOBACCO",""]}}
+{"cartChangeTrail":{"timeStamp":"2025-08-13T21:06:32","eventType":"addLineItem","eventSeq":1,"itemName":"Monster Energy XXL 24zCn","itemId":241967,"departmentId":"241001","price":4.79,"quantity":1,"transactionLineId":1}}
+{"cartChangeTrail":{"timeStamp":"2025-08-13T21:06:33","eventType":"updateLineItem","eventSeq":2,"eventResult":"increaseItemQuantity","itemName":"Monster Energy XXL 24zCn","itemId":241967,"departmentId":"241001","price":4.79,"quantity":1,"transactionLineId":1}}
+{"cartChangeTrail":{"timeStamp":"2025-08-13T21:06:51","eventType":"updateLineItem","eventSeq":3,"eventResult":"increaseItemQuantity","itemName":"Monster Energy XXL 24zCn","itemId":241967,"departmentId":"241001","price":4.79,"quantity":1,"transactionLineId":1}}
+{"cartChangeTrail":{"timeStamp":"2025-08-13T21:07:25","eventType":"addLineItem","eventSeq":4,"itemName":"Monster Zero Ultra 24z Cn","itemId":242226,"departmentId":"241001","price":4.79,"quantity":1,"transactionLineId":2}}
+{"cartChangeTrail":{"timeStamp":"2025-08-13T21:07:26","eventType":"updateLineItem","eventSeq":5,"eventResult":"increaseItemQuantity","itemName":"Monster Zero Ultra 24z Cn","itemId":242226,"departmentId":"241001","price":4.79,"quantity":1,"transactionLineId":2}}
+{"cartChangeTrail":{"timeStamp":"2025-08-13T21:07:26","eventType":"updateLineItem","eventSeq":6,"eventResult":"increaseItemQuantity","itemName":"Monster Zero Ultra 24z Cn","itemId":242226,"departmentId":"241001","price":4.79,"quantity":1,"transactionLineId":2}}
+{"transactionSummary":[{"details":"$28.74","description":"SUBTOTAL"},{"details":"$28.74","description":"TOTAL DUE"}]}
+{"transactionFooter":{"footerLines":null,"memberDetails":[],"footer":["THANK YOU","PLEASE COME AGAIN!","T#04 OP41 TRN0562 08/13/2025 16:07 PM"],"transactionStatus":"Aborted"}}
+{"CMD":"EndTransaction"}
+{"CMD":"StartTransaction"}
+{"metaData":{"storeNumber":"38551","terminalNumber":"04","timeStamp":"2025-08-13T16:12:06","transactionSeqNumber":"0563","transactionType":"Sale","operator":"OP41"}}
+{"transactionHeader":{"headerLines":["7 ELEVEN","8800 HARMON ROAD","FORT WORTH TX 76177","Ph: 6822842773","STORE#: 38551","THANKS FOR YOUR BUSINESS!","NO RETURNS ON PHONE ACCESSORIES,TOBACCO",""]}}
+{"cartChangeTrail":{"timeStamp":"2025-08-13T21:12:06","eventType":"addLineItem","eventSeq":1,"itemName":"Super Big Gulp Plastic NOI","itemId":130825,"departmentId":"130101","price":1.69,"quantity":1,"transactionLineId":1}}
+{"cartChangeTrail":{"timeStamp":"2025-08-13T21:12:09","eventType":"addLineItem","eventSeq":2,"itemName":"Nacho Large Tray Kit 7-11","itemId":170026,"departmentId":"170601","price":3.49,"quantity":1,"transactionLineId":2}}
+{"cartChangeTrail":{"timeStamp":"2025-08-13T21:12:12","eventType":"addLineItem","eventSeq":3,"itemName":"DMBanana24ctDMBanana24ctDMBanana24ctDMBanana24ctDMBanana24ctDMBanana24ct","itemId":171935,"departmentId":"170301","price":0.89,"quantity":1,"transactionLineId":3}}
+{"cartChangeTrail":{"timeStamp":"2025-08-13T21:12:13","eventType":"updateLineItem","eventSeq":4,"eventResult":"increaseItemQuantity","itemName":"DMBanana24ctDMBanana24ctDMBanana24ctDMBanana24ctDMBanana24ctDMBanana24ct","itemId":171935,"departmentId":"170301","price":0.89,"quantity":1,"transactionLineId":3}}
+{"cartChangeTrail":{"timeStamp":"2025-08-13T21:12:14","eventType":"updateLineItem","eventSeq":5,"eventResult":"increaseItemQuantity","itemName":"DMBanana24ctDMBanana24ctDMBanana24ctDMBanana24ctDMBanana24ctDMBanana24ct","itemId":171935,"departmentId":"170301","price":0.89,"quantity":1,"transactionLineId":3}}
+{"cartChangeTrail":{"timeStamp":"2025-08-13T21:12:14","eventType":"addLineItem","eventSeq":6,"itemName":"PROMO Banana 2x","price":1.36,"transactionLineId":3.1}}
+{"cartChangeTrail":{"timeStamp":"2025-08-13T21:12:14","eventType":"updateLineItem","eventSeq":7,"eventResult":"increaseItemQuantity","itemName":"DMBanana24ctDMBanana24ctDMBanana24ctDMBanana24ctDMBanana24ctDMBanana24ct","itemId":171935,"departmentId":"170301","price":0.89,"quantity":1,"transactionLineId":3}}
+{"cartChangeTrail":{"timeStamp":"2025-08-13T21:12:15","eventType":"updateLineItem","eventSeq":8,"eventResult":"increaseItemQuantity","itemName":"Nacho Large Tray Kit 7-11","itemId":170026,"departmentId":"170601","price":3.49,"quantity":1,"transactionLineId":2}}
+{"cartChangeTrail":{"timeStamp":"2025-08-13T21:12:15","eventType":"updateLineItem","eventSeq":9,"eventResult":"increaseItemQuantity","itemName":"Nacho Large Tray Kit 7-11","itemId":170026,"departmentId":"170601","price":3.49,"quantity":1,"transactionLineId":2}}
+{"cartChangeTrail":{"timeStamp":"2025-08-13T21:12:15","eventType":"updateLineItem","eventSeq":10,"eventResult":"increaseItemQuantity","itemName":"Super Big Gulp Plastic NOI","itemId":130825,"departmentId":"130101","price":1.69,"quantity":1,"transactionLineId":1}}
+{"cartChangeTrail":{"timeStamp":"2025-08-13T21:12:15","eventType":"updateLineItem","eventSeq":11,"eventResult":"increaseItemQuantity","itemName":"Super Big Gulp Plastic NOI","itemId":130825,"departmentId":"130101","price":1.69,"quantity":1,"transactionLineId":1}}
+{"cartChangeTrail":{"timeStamp":"2025-08-13T21:12:19","eventType":"addLineItem","eventSeq":12,"itemName":"Reddy Ice Prem. Bag 7lb","itemId":180422,"departmentId":"180101","price":3.59,"quantity":1,"transactionLineId":4}}
+{"cartChangeTrail":{"timeStamp":"2025-08-13T21:12:20","eventType":"finalizeAndPay","eventSeq":13,"eventResult":"payNow"}}
+{"transactionSummary":[{"details":"$22.69","description":"SUBTOTAL"},{"details":"-$1.36","description":"DISCOUNT(S)"},{"details":"$1.58","description":"TAX ON 19.13"},{"details":"$22.91","description":"TOTAL DUE"}]}
+{"paymentSummary":[{"details":"$22.91","description":"DEBIT"},{"description":"ACCT#: ************0183"},{"description":"APPROVAL#: 214696    AUTH CODE: 0"},{"description":"APPROVAL TIME: 161228"},{"description":"DEBIT AUTH NAME: UnknownAuthorizer"},{"description":"DEBIT ACCT TYPE:    "},{"description":"DEBIT TRACE ID: 902336"},{"description":"TERM#: 00073855199"},{"description":"REF#: 25799903192"},{"description":"ENTRY: SWIPE"},{"description":"APPROVED"},{"description":"BATCH: 85"},{"description":"SEQ: 16"}]}
+{"transactionFooter":{"footerLines":null,"memberDetails":[],"footer":["THANK YOU","PLEASE COME AGAIN!","T#04 SCO TRN0563 08/13/2025 16:12 PM"],"transactionStatus":"Completed"}}
+{"CMD":"EndTransaction"}
+{"metaData":{"storeNumber":"38551","terminalNumber":"04","timeStamp":"2025-08-13T21:18:49","transactionSeqNumber":"","transactionType":"","operator":"OP41"}}
+{"cartChangeTrail":{"timeStamp":"2025-08-13T21:18:49","eventType":"addItemError","eventSeq":1,"eventResult":"Card Load Canceled by SA","itemName":"Card LookUp","price":null,"userId":"41"}}

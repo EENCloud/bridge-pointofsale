@@ -40,10 +40,8 @@ type Ingestor struct {
 	handlers      sync.Map
 	settings      Settings
 	etagQueue     chan<- []byte
-	ipToESNs      map[string][]string
 	ipToStoreInfo map[string]RegisterConfig
 	stateMachine  *IPBasedStateMachine
-	settingsMutex sync.RWMutex
 	auditLogger   *core.AuditLogger
 }
 
@@ -54,11 +52,9 @@ type RegisterHandler struct {
 	wg           sync.WaitGroup
 	logger       *goeen_log.Logger
 	processor    *Processor
-	state        *TransactionState
 	etagQueue    chan<- []byte
 	lastActivity time.Time
 	mu           sync.Mutex
-	targetESNs   []string
 	stateMachine *IPBasedStateMachine
 }
 
@@ -79,7 +75,6 @@ func NewIngestor(logger *goeen_log.Logger, settings Settings, processor *Process
 		handlers:      sync.Map{},
 		settings:      settings,
 		etagQueue:     etagQueue,
-		ipToESNs:      make(map[string][]string),
 		ipToStoreInfo: make(map[string]RegisterConfig),
 		stateMachine:  stateMachine,
 		auditLogger:   auditLogger,
@@ -161,9 +156,7 @@ func (i *Ingestor) getOrCreateHandler(ip string) *RegisterHandler {
 		return handler.(*RegisterHandler)
 	}
 
-	esns := i.findESNsForIP(ip)
-	primaryESN := esns[0]
-	newHandler := NewRegisterHandler(ip, i.logger, i.processor, i.etagQueue, primaryESN, esns, i.stateMachine)
+	newHandler := NewRegisterHandler(ip, i.logger, i.processor, i.etagQueue, i.stateMachine)
 	actual, loaded := i.handlers.LoadOrStore(ip, newHandler)
 	if loaded {
 		newHandler.Stop()
@@ -171,75 +164,6 @@ func (i *Ingestor) getOrCreateHandler(ip string) *RegisterHandler {
 	}
 	go newHandler.Process()
 	return newHandler
-}
-
-func (i *Ingestor) findESNsForIP(ip string) []string {
-	// Use state machine's IP-to-ESN mapping for consistency
-	if i.stateMachine != nil {
-		esn := i.stateMachine.getESNForIP(ip)
-		if esn != "" && esn != InvalidESN {
-			i.logger.Infof("Found ESN for IP %s: %s", ip, esn)
-			return []string{esn}
-		}
-	}
-
-	i.logger.Warningf("No ESN found for IP %s, using current ESN as fallback", ip)
-	return []string{i.getCurrentESN()}
-}
-
-func (i *Ingestor) getCurrentESN() string {
-	i.settingsMutex.RLock()
-	defer i.settingsMutex.RUnlock()
-
-	// If we have any IP-ESN mappings, return the first ESN found
-	for _, esns := range i.ipToESNs {
-		if len(esns) > 0 {
-			return esns[0]
-		}
-	}
-
-	// If no mappings exist, try to parse from registers
-	var registerConfigs []RegisterConfig
-	if err := json.Unmarshal(i.settings.Registers, &registerConfigs); err != nil {
-		return InvalidESN
-	}
-
-	// No registers configured, return invalid ESN
-	if len(registerConfigs) == 0 {
-		return InvalidESN
-	}
-
-	// Return a default ESN since we don't have specific mappings
-	return DefaultESN
-}
-
-func (i *Ingestor) AddESNRegisters(esn string, registers []RegisterConfig) {
-	i.settingsMutex.Lock()
-	defer i.settingsMutex.Unlock()
-
-	for _, reg := range registers {
-		ip := reg.IPAddress
-		if _, exists := i.ipToESNs[ip]; !exists {
-			i.ipToESNs[ip] = []string{}
-		}
-
-		// Check if ESN already exists for this IP
-		found := false
-		for _, existingESN := range i.ipToESNs[ip] {
-			if existingESN == esn {
-				found = true
-				break
-			}
-		}
-
-		// Add ESN if not already present
-		if !found {
-			i.ipToESNs[ip] = append(i.ipToESNs[ip], esn)
-			i.logger.Infof("Added ESN %s for IP %s", esn, ip)
-		}
-	}
-
-	i.logger.Infof("Updated mappings for ESN %s with %d registers", esn, len(registers))
 }
 
 func (i *Ingestor) cleanupLoop() {
@@ -260,16 +184,14 @@ func (i *Ingestor) cleanupLoop() {
 
 // --- RegisterHandler Methods ---
 
-func NewRegisterHandler(ip string, logger *goeen_log.Logger, processor *Processor, etagQueue chan<- []byte, primaryESN string, allESNs []string, stateMachine *IPBasedStateMachine) *RegisterHandler {
+func NewRegisterHandler(ip string, logger *goeen_log.Logger, processor *Processor, etagQueue chan<- []byte, stateMachine *IPBasedStateMachine) *RegisterHandler {
 	return &RegisterHandler{
 		ip:           ip,
 		queue:        make(chan []byte, 100),
 		stopChan:     make(chan struct{}),
 		logger:       logger,
 		processor:    processor,
-		state:        &TransactionState{ESN: primaryESN},
 		etagQueue:    etagQueue,
-		targetESNs:   allESNs,
 		stateMachine: stateMachine,
 	}
 }

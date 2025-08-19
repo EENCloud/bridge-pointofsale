@@ -13,7 +13,7 @@ import (
 )
 
 // Single TTL constant for all items (business rule)
-const itemTTL = 48 * time.Hour
+const itemTTL = 72 * time.Hour
 
 // ANNTItem represents an ANNT structure for storage
 type ANNTItem struct {
@@ -45,12 +45,12 @@ func NewANNTStore(dir string, maxSizeGB int, logger *goeen_log.Logger) (*ANNTSto
 	}
 
 	opts := badger.DefaultOptions(dir).
-		WithValueLogFileSize(64 << 20). // 64MB value log files
-		WithMemTableSize(32 << 20).     // 32MB mem tables
-		WithNumMemtables(3).            // 3 mem tables
-		WithNumCompactors(4).           // 4 compactors
-		WithSyncWrites(false).          // Async for performance
-		WithBlockCacheSize(64 << 20).   // 64MB block cache
+		WithValueLogFileSize(1 << 20). // 1MB value log files
+		WithMemTableSize(32 << 20).    // 32MB mem tables
+		WithNumMemtables(3).           // 3 mem tables
+		WithNumCompactors(4).          // 4 compactors
+		WithSyncWrites(false).         // Async for performance
+		WithBlockCacheSize(64 << 20).  // 64MB block cache
 		WithLogger(nil)
 
 	db, err := badger.Open(opts)

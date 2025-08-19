@@ -56,7 +56,7 @@ func NewAppLoggerWithContext(component, logFilePath, environment, version string
 		}
 	}
 
-	logger := log.New(os.Stdout, "", 0)
+	logger := log.New(os.Stderr, "", 0)
 	if logFile != nil {
 		logger.SetOutput(logFile)
 	}
@@ -339,7 +339,7 @@ func (a *AppLogger) LogRecoveryProgress(processed, remaining int, rate float64) 
 	})
 }
 
-// ===== LEGACY METHODS (Keep for backward compatibility) =====
+// ===== LEGACY METHODS =====
 
 func (a *AppLogger) LogVendorMode(vendor string, simulatorMode bool) {
 	a.Debug("vendor mode set", map[string]interface{}{

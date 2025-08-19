@@ -96,7 +96,7 @@ type IPBasedStateMachine struct {
 	ns92Queue chan<- ETagResult
 	processor ANNTProcessor
 	esn       string
-	ipToESN   map[string]string
+	ipToESNs  map[string][]string
 	logger    *log.Logger
 }
 
@@ -106,7 +106,7 @@ func NewIPBasedStateMachine(ns91Queue, ns92Queue chan<- ETagResult, logger *log.
 		ns91Queue: ns91Queue,
 		ns92Queue: ns92Queue,
 		esn:       DefaultESN,
-		ipToESN:   make(map[string]string),
+		ipToESNs:  make(map[string][]string),
 		logger:    logger,
 	}
 }
@@ -121,26 +121,110 @@ func (sm *IPBasedStateMachine) SetESN(esn string) {
 }
 
 func (sm *IPBasedStateMachine) SetIPESNMappings(mappings map[string]string) {
+	sm.mutex.Lock()
+	defer sm.mutex.Unlock()
+
 	// In normal mode, just set the mappings directly
-	if sm.ipToESN == nil {
-		sm.ipToESN = make(map[string]string)
+	if sm.ipToESNs == nil {
+		sm.ipToESNs = make(map[string][]string)
 	}
 
 	// Clear existing mappings and set new ones
-	sm.ipToESN = make(map[string]string)
+	sm.ipToESNs = make(map[string][]string)
 	for ip, esn := range mappings {
-		sm.ipToESN[ip] = esn
+		sm.ipToESNs[ip] = []string{esn}
 	}
 }
 
 func (sm *IPBasedStateMachine) AddIPESNMapping(ip, esn string) {
-	if sm.ipToESN == nil {
-		sm.ipToESN = make(map[string]string)
+	sm.mutex.Lock()
+	defer sm.mutex.Unlock()
+
+	if sm.ipToESNs == nil {
+		sm.ipToESNs = make(map[string][]string)
 	}
 
-	// Dynamic configs from real configuration
-	sm.ipToESN[ip] = esn
+	// Check if ESN already exists for this IP
+	if sm.ipToESNs[ip] == nil {
+		sm.ipToESNs[ip] = []string{}
+	}
+
+	for _, existingESN := range sm.ipToESNs[ip] {
+		if existingESN == esn {
+			return // ESN already mapped to this IP
+		}
+	}
+
+	sm.ipToESNs[ip] = append(sm.ipToESNs[ip], esn)
 	sm.logger.Infof("Added ESN %s for IP %s", esn, ip)
+}
+
+func (sm *IPBasedStateMachine) RemoveESNMappings(esn string) {
+	sm.mutex.Lock()
+	defer sm.mutex.Unlock()
+
+	if sm.ipToESNs == nil {
+		return
+	}
+
+	removedIPs := []string{}
+	for ip, mappedESNs := range sm.ipToESNs {
+		newESNs := []string{}
+		for _, mappedESN := range mappedESNs {
+			if mappedESN != esn {
+				newESNs = append(newESNs, mappedESN)
+			}
+		}
+
+		if len(newESNs) == 0 {
+			delete(sm.ipToESNs, ip)
+			removedIPs = append(removedIPs, ip)
+		} else {
+			sm.ipToESNs[ip] = newESNs
+		}
+	}
+
+	if len(removedIPs) > 0 {
+		sm.logger.Infof("Removed ESN %s mappings for IPs: %v", esn, removedIPs)
+	}
+}
+
+// RemoveSpecificIPESNMappings removes specific IP mappings for an ESN without affecting other ESNs
+func (sm *IPBasedStateMachine) RemoveSpecificIPESNMappings(esn string, ipsToRemove []string) {
+	sm.mutex.Lock()
+	defer sm.mutex.Unlock()
+
+	if sm.ipToESNs == nil {
+		return
+	}
+
+	actuallyRemovedIPs := []string{}
+
+	for _, ipToRemove := range ipsToRemove {
+		if mappedESNs, exists := sm.ipToESNs[ipToRemove]; exists {
+			newESNs := []string{}
+
+			// Keep all ESNs except the one we're removing
+			for _, mappedESN := range mappedESNs {
+				if mappedESN != esn {
+					newESNs = append(newESNs, mappedESN)
+				}
+			}
+
+			// Update or delete the IP mapping
+			if len(newESNs) == 0 {
+				delete(sm.ipToESNs, ipToRemove)
+				actuallyRemovedIPs = append(actuallyRemovedIPs, ipToRemove)
+			} else {
+				sm.ipToESNs[ipToRemove] = newESNs
+				actuallyRemovedIPs = append(actuallyRemovedIPs, ipToRemove)
+			}
+		}
+	}
+
+	if len(actuallyRemovedIPs) > 0 {
+		sm.logger.Infof("Removed ESN %s mappings for specific IPs: %v", esn, actuallyRemovedIPs)
+	}
 }
 
 // GetIPESNMappings returns a copy of the current IP-to-ESN mappings
@@ -148,34 +232,48 @@ func (sm *IPBasedStateMachine) GetIPESNMappings() map[string]string {
 	sm.mutex.RLock()
 	defer sm.mutex.RUnlock()
 
-	if sm.ipToESN == nil {
+	if sm.ipToESNs == nil {
 		return make(map[string]string)
 	}
 
 	// Return a copy to prevent external modification
+	// Return all IP-ESN mappings flattened (first ESN per IP)
 	mappings := make(map[string]string)
-	for ip, esn := range sm.ipToESN {
-		mappings[ip] = esn
+	for ip, esns := range sm.ipToESNs {
+		if len(esns) > 0 {
+			mappings[ip] = esns[0] // Return the first ESN for this IP
+		}
 	}
 	return mappings
 }
 
-func (sm *IPBasedStateMachine) getESNForIP(ip string) string {
-	if sm.ipToESN != nil {
-		if esn, exists := sm.ipToESN[ip]; exists {
-			if isValidESN(esn) {
-				return esn
+// getESNsForIP returns all ESNs mapped to an IP
+func (sm *IPBasedStateMachine) getESNsForIP(ip string) []string {
+	sm.mutex.RLock()
+	defer sm.mutex.RUnlock()
+
+	if sm.ipToESNs != nil {
+		if esns, exists := sm.ipToESNs[ip]; exists && len(esns) > 0 {
+			validESNs := []string{}
+			for _, esn := range esns {
+				if isValidESN(esn) {
+					validESNs = append(validESNs, esn)
+				} else {
+					sm.logger.Errorf("Invalid ESN format for IP %s: %s", ip, esn)
+				}
 			}
-			sm.logger.Errorf("Invalid ESN format for IP %s: %s", ip, esn)
+			if len(validESNs) > 0 {
+				return validESNs
+			}
 		}
 	}
 
 	if sm.esn != "" && isValidESN(sm.esn) {
-		return sm.esn
+		return []string{sm.esn}
 	}
 
 	sm.logger.Errorf("No valid ESN found for IP %s", ip)
-	return InvalidESN
+	return []string{InvalidESN}
 }
 
 func isValidESN(esn string) bool {
@@ -649,6 +747,16 @@ func (sm *IPBasedStateMachine) flushUnknownEventGroup(group *UnknownEventGroup) 
 }
 
 func (sm *IPBasedStateMachine) sendToNS91(transaction *POSTransactionState, status *TransactionStatus) {
+	// Get all ESNs for this IP
+	esns := sm.getESNsForIP(transaction.RegisterIP)
+
+	// Send to each ESN
+	for _, esn := range esns {
+		sm.sendToNS91WithESN(transaction, status, esn)
+	}
+}
+
+func (sm *IPBasedStateMachine) sendToNS91WithESN(transaction *POSTransactionState, status *TransactionStatus, esn string) {
 	posData := map[string]interface{}{
 		"domain":      "711pos2",
 		"register_ip": transaction.RegisterIP,
@@ -726,14 +834,14 @@ func (sm *IPBasedStateMachine) sendToNS91(transaction *POSTransactionState, stat
 		Namespace:      91,
 		Status:         status,
 		CreatedAt:      time.Now(),
-		ESN:            sm.getESNForIP(transaction.RegisterIP),
+		ESN:            esn,
 	}
 
 	if sm.processor != nil {
 		state := &TransactionState{
 			UUID: sm.GenerateETagUUID(transaction.RegisterIP, transaction.TransactionSeq, transaction.MetaData),
 			Seq:  uint16(len(transaction.OtherEvents) + 4),
-			ESN:  sm.getESNForIP(transaction.RegisterIP),
+			ESN:  esn,
 		}
 
 		if anntData, err := sm.processor.CreateANNTStructure(completeTransaction, state, 91); err == nil {
@@ -748,7 +856,16 @@ func (sm *IPBasedStateMachine) sendToNS91(transaction *POSTransactionState, stat
 }
 
 func (sm *IPBasedStateMachine) sendToNS92(eventData map[string]interface{}, transaction *POSTransactionState, status *TransactionStatus) {
+	// Get all ESNs for this IP
+	esns := sm.getESNsForIP(transaction.RegisterIP)
 
+	// Send to each ESN
+	for _, esn := range esns {
+		sm.sendToNS92WithESN(eventData, transaction, status, esn)
+	}
+}
+
+func (sm *IPBasedStateMachine) sendToNS92WithESN(eventData map[string]interface{}, transaction *POSTransactionState, status *TransactionStatus, esn string) {
 	etag := ETagResult{
 		ID:             sm.GenerateETagIDFromEvent(transaction.RegisterIP, transaction.TransactionSeq, eventData),
 		RegisterIP:     transaction.RegisterIP,
@@ -756,7 +873,7 @@ func (sm *IPBasedStateMachine) sendToNS92(eventData map[string]interface{}, tran
 		Namespace:      92,
 		Status:         status,
 		CreatedAt:      time.Now(),
-		ESN:            sm.getESNForIP(transaction.RegisterIP),
+		ESN:            esn,
 	}
 
 	if sm.processor != nil {
@@ -765,7 +882,7 @@ func (sm *IPBasedStateMachine) sendToNS92(eventData map[string]interface{}, tran
 		state := &TransactionState{
 			UUID: sm.GenerateETagUUID(transaction.RegisterIP, transaction.TransactionSeq, eventData),
 			Seq:  currentSeq,
-			ESN:  sm.getESNForIP(transaction.RegisterIP),
+			ESN:  esn,
 		}
 
 		if anntData, err := sm.processor.CreateANNTStructure(eventData, state, 92); err == nil {
