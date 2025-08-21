@@ -28,7 +28,7 @@ type Simulator struct {
 	stopMutex       sync.Mutex
 
 	// Modulo simulation options
-	realTimeMode bool // Controls timestamp fudging only (NEVER modify transaction sequence numbers)
+	realTimeMode bool // Controls timestamp fudging only (NEVER modify transaction sequence numbers) - set via SIM_REAL_TIME
 }
 
 // NewSimulatorWithMappings creates a simulator with IP-to-terminal/store mappings
@@ -101,7 +101,7 @@ func (s *Simulator) Start() error {
 	return nil
 }
 
-// simulateRegisterUnified handles unified simulation with assigned log file and REAL_TIME control
+// simulateRegisterUnified handles unified simulation with assigned log file and SIM_REAL_TIME control
 func (s *Simulator) simulateRegisterUnified(filename, sourceIP string) {
 	filePath := filepath.Join(s.dataDir, filename)
 	s.logger.Infof("Starting unified simulation: %s from IP %s (real_time=%t)", filename, sourceIP, s.realTimeMode)
@@ -169,7 +169,7 @@ func (s *Simulator) simulateRegisterUnified(filename, sourceIP string) {
 	}
 }
 
-// postJSONUnified posts JSON with REAL_TIME control over fudging
+// postJSONUnified posts JSON with SIM_REAL_TIME control over fudging
 func (s *Simulator) postJSONUnified(jsonData, sourceIP string) error {
 	maxRetries := 5
 	initialDelay := 100 * time.Millisecond
@@ -178,7 +178,7 @@ func (s *Simulator) postJSONUnified(jsonData, sourceIP string) error {
 	var data map[string]interface{}
 	if err := json.Unmarshal([]byte(jsonData), &data); err == nil {
 		if s.realTimeMode {
-			// REAL_TIME=true: Apply fudging (terminal/store numbers and timestamps only)
+			// SIM_REAL_TIME=true: Apply fudging (terminal/store numbers and timestamps only)
 			if metaData, ok := data["metaData"].(map[string]interface{}); ok {
 				// Override terminal number and store number based on IP
 				if terminalNumber, exists := s.ipToTerminal[sourceIP]; exists {
@@ -192,7 +192,7 @@ func (s *Simulator) postJSONUnified(jsonData, sourceIP string) error {
 			// Update ALL timestamp fields to current time (recursive search)
 			s.updateAllTimestamps(data)
 		}
-		// REAL_TIME=false: No fudging at all, preserve all original data exactly as-is
+		// SIM_REAL_TIME=false: No fudging at all, preserve all original data exactly as-is
 
 		// Re-marshal the (possibly modified) JSON
 		if modifiedJSON, err := json.Marshal(data); err == nil {

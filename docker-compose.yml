@@ -1,15 +1,11 @@
-version: '2'
+version: '3'
 
 services:
-  point_of_sale:
-    image: point_of_sale:latest
-    container_name: point_of_sale
-    environment:
-      - MODE=production
-      - REAL_TIME=false
-      - SIM_TEST_PORT=6334
-      - PRODUCTION_PORT=6334
-      - POS_VERBOSE_LOGGING=true
+  bridge-pointofsale:
+    image: bridge-pointofsale
+    build:
+      dockerfile: ./Dockerfile
+      context: ./
     network_mode: host
     restart: always
     shm_size: '2g'

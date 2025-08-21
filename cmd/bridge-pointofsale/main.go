@@ -19,11 +19,13 @@ import (
 )
 
 func main() {
-	logger := goeen_log.NewContext(os.Stdout, "", goeen_log.LevelInfo).GetLogger("bridge-pointofsale", goeen_log.LevelInfo)
+	// Use a clean, simple JSON format (not the verbose DefaultV1Format)
+	simpleFormat := `{"timestamp":"{{eenTimeStamp .Now}}","level":"{{.Level}}","message":"{{.Message}}"}`
+	logger := goeen_log.NewContext(os.Stderr, simpleFormat, goeen_log.LevelInfo).GetLogger("bridge-pointofsale", goeen_log.LevelInfo)
 	logger.Info("Starting Bridge Devices POS application...")
 
 	dataDir := core.GetDataDirectory()
-	dbDir := filepath.Join(dataDir, "badger_db")
+	dbDir := filepath.Join(dataDir, "annt_db")
 	anntStore, err := core.NewANNTStore(dbDir, 2, logger)
 	if err != nil {
 		logger.Fatalf("Failed to create ANNT store: %v", err)

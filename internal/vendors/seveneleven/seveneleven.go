@@ -145,6 +145,12 @@ func (v *Vendor) GetResolvedConfig() map[string]interface{} {
 }
 
 func (v *Vendor) HandleESNConfiguration(esn string, vendor *settings.VendorConfig) {
+	if vendor == nil {
+		v.logger.Infof("POS CONFIG REMOVAL: ESN %s configuration removed", esn)
+		v.removeESNConfiguration(esn)
+		return
+	}
+
 	v.logger.Infof("POS CONFIG CHANGE: ESN %s received new configuration", esn)
 
 	var registers []RegisterConfig
@@ -156,20 +162,53 @@ func (v *Vendor) HandleESNConfiguration(esn string, vendor *settings.VendorConfi
 	v.logger.Infof("Configured %d registers for ESN %s", len(registers), esn)
 
 	if v.ingestor != nil {
-		v.ingestor.AddESNRegisters(esn, registers)
-		for _, reg := range registers {
-			v.stateMachine.AddIPESNMapping(reg.IPAddress, esn)
-			v.logger.Infof("Register mapped: %s (term %s) → ESN %s", reg.IPAddress, reg.TerminalNumber, esn)
-		}
+		v.atomicESNConfigurationUpdate(esn, registers)
 
 		if v.isSimMode {
-			// Assign register file for this ESN using modulo logic
 			v.assignRegisterFileForESN(esn, registers)
-
-			// Start or restart simulator with all current mappings
 			v.updateSimulator()
 		}
 	}
+}
+
+func (v *Vendor) atomicESNConfigurationUpdate(esn string, registers []RegisterConfig) {
+	currentMappings := v.stateMachine.GetIPESNMappings()
+	currentIPsForESN := make([]string, 0)
+
+	for ip, mappedESN := range currentMappings {
+		if mappedESN == esn {
+			currentIPsForESN = append(currentIPsForESN, ip)
+		}
+	}
+
+	newIPs := make(map[string]bool)
+	for _, reg := range registers {
+		newIPs[reg.IPAddress] = true
+	}
+
+	ipsToRemove := make([]string, 0)
+	for _, currentIP := range currentIPsForESN {
+		if !newIPs[currentIP] {
+			ipsToRemove = append(ipsToRemove, currentIP)
+		}
+	}
+
+	if len(ipsToRemove) > 0 {
+		v.logger.Infof("ESN %s: Removing mappings for IPs: %v", esn, ipsToRemove)
+	}
+
+	if len(ipsToRemove) > 0 {
+		// Remove only the specific IPs that are no longer in the configuration
+		// This preserves mappings for IPs that might be shared with other ESNs
+		v.stateMachine.RemoveSpecificIPESNMappings(esn, ipsToRemove)
+	}
+
+	for _, reg := range registers {
+		v.stateMachine.AddIPESNMapping(reg.IPAddress, esn)
+		v.logger.Infof("Register mapped: %s (term %s) → ESN %s", reg.IPAddress, reg.TerminalNumber, esn)
+	}
+
+	v.logger.Infof("ESN %s: Atomic configuration update completed", esn)
 }
 
 // assignRegisterFileForESN assigns a register file to an ESN using terminal number modulo 5
@@ -219,11 +258,11 @@ func (v *Vendor) assignRegisterFileForESN(esn string, registers []RegisterConfig
 
 func (v *Vendor) Start() error {
 	if v.isSimMode {
-		realTime := os.Getenv("REAL_TIME")
+		realTime := os.Getenv("SIM_REAL_TIME")
 		if realTime == "false" {
-			v.logger.Info("Simulation mode: waiting for pos_config (REAL_TIME=false, no fudging)")
+			v.logger.Info("Simulation mode: waiting for pos_config (SIM_REAL_TIME=false, no fudging)")
 		} else {
-			v.logger.Info("Simulation mode: waiting for pos_config (REAL_TIME=true, with fudging)")
+			v.logger.Info("Simulation mode: waiting for pos_config (SIM_REAL_TIME=true, with fudging)")
 		}
 		v.settings.ListenPort = 6334
 	} else {
@@ -399,7 +438,7 @@ func (v *Vendor) updateSimulator() {
 
 	// Start simulator with ALL IPs and their mappings
 	target := fmt.Sprintf("http://localhost:%d", v.settings.ListenPort)
-	realTime := os.Getenv("REAL_TIME") != "false"
+	realTime := os.Getenv("SIM_REAL_TIME") != "false"
 
 	// Build register configs with terminal numbers from ESN assignments
 	allRegisters := make([]RegisterConfig, 0, len(allIPs))
@@ -431,9 +470,23 @@ func (v *Vendor) updateSimulator() {
 	v.simulator = NewSimulatorWithMappings(v.logger, target, allIPs, "", realTime, allRegisters)
 
 	go func() {
-		v.logger.Infof("Starting simulator: %d IPs total (REAL_TIME=%t)", len(allIPs), realTime)
+		v.logger.Infof("Starting simulator: %d IPs total (SIM_REAL_TIME=%t)", len(allIPs), realTime)
 		if err := v.simulator.Start(); err != nil {
 			v.logger.Errorf("Simulator error: %v", err)
 		}
 	}()
+}
+
+func (v *Vendor) removeESNConfiguration(esn string) {
+	v.assignmentMutex.Lock()
+	delete(v.esnToRegisterFile, esn)
+	v.assignmentMutex.Unlock()
+
+	if v.stateMachine != nil {
+		v.stateMachine.RemoveESNMappings(esn)
+	}
+
+	if v.isSimMode {
+		v.updateSimulator()
+	}
 }

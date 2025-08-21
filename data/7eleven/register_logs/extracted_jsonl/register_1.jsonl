@@ -5032,3 +5032,74 @@
 {"cardLoadSummary":[{"description":"ACCT#:  ************8737"},{"description":"STTN#:  003058         BALANCE:  10.00"},{"description":"APPROVAL#:  435318    AUTH CODE:  0"},{"description":"APPROVAL TIME:  2025-07-21T13:44:51.000"}]}
 {"transactionFooter":{"footerLines":null,"memberDetails":[],"footer":["THANK YOU","PLEASE COME AGAIN!","T#01 OP41 TRN4023 07/21/2025 13:45 PM"],"transactionStatus":"Completed"}}
 {"CMD":"EndTransaction"}
+{"CMD":"StartTransaction"}
+{"metaData":{"storeNumber":"38551","terminalNumber":"01","timeStamp":"2025-08-12T14:53:35","transactionSeqNumber":"4556","transactionType":"Sale","operator":"OP41"}}
+{"transactionHeader":{"headerLines":["7 ELEVEN","8800 HARMON ROAD","FORT WORTH TX 76177","Ph: 6822842773","STORE#: 38551","THANKS FOR YOUR BUSINESS!","NO RETURNS ON PHONE ACCESSORIES,TOBACCO",""]}}
+{"cartChangeTrail":{"timeStamp":"2025-08-12T19:53:35","eventType":"addLineItem","eventSeq":1,"itemName":"Pump 2 Prepay ","price":100,"quantity":1,"transactionLineId":1,"itemRestrictionCode":1}}
+{"CMD":"StartTransaction"}
+{"metaData":{"storeNumber":"38551","terminalNumber":"01","timeStamp":"2025-08-12T14:53:35","transactionSeqNumber":"4556","transactionType":"Sale","operator":"OP41"}}
+{"transactionHeader":{"headerLines":["7 ELEVEN","8800 HARMON ROAD","FORT WORTH TX 76177","Ph: 6822842773","STORE#: 38551","THANKS FOR YOUR BUSINESS!","NO RETURNS ON PHONE ACCESSORIES,TOBACCO",""]}}
+{"cartChangeTrail":{"timeStamp":"2025-08-12T19:53:35","eventType":"addLineItem","eventSeq":1,"itemName":"Pump 2 Prepay ","price":100,"quantity":1,"transactionLineId":1,"itemRestrictionCode":1}}
+{"transactionSummary":[{"details":"$100.00","description":"SUBTOTAL"},{"details":"$100.00","description":"TOTAL DUE"}]}
+{"transactionSummary":[{"details":"$100.00","description":"SUBTOTAL"},{"details":"$100.00","description":"TOTAL DUE"},{"details":"$100.00","description":"CHANGE"}]}
+{"transactionSummary":[{"details":"$100.00","description":"SUBTOTAL"},{"details":"$100.00","description":"TOTAL DUE"}]}
+{"paymentSummary":[{"details":"$100.00","description":"Cash"}]}
+{"transactionFooter":{"footerLines":null,"memberDetails":[],"footer":["THANK YOU","PLEASE COME AGAIN!","T#01 OP41 TRN4556 08/12/2025 14:53 PM"],"transactionStatus":"Completed"}}
+{"CMD":"EndTransaction"}
+{"CMD":"StartTransaction"}
+{"metaData":{"storeNumber":"38551","terminalNumber":"01","timeStamp":"2025-08-12T16:29:23","transactionSeqNumber":"4557","transactionType":"Sale","operator":"OP41"}}
+{"transactionHeader":{"headerLines":["7 ELEVEN","8800 HARMON ROAD","FORT WORTH TX 76177","Ph: 6822842773","STORE#: 38551","THANKS FOR YOUR BUSINESS!","NO RETURNS ON PHONE ACCESSORIES,TOBACCO",""]}}
+{"cartChangeTrail":{"timeStamp":"2025-08-12T21:29:23","eventType":"addLineItem","eventSeq":1,"itemName":"Nacho Large Tray Kit 7-11","price":3.49,"quantity":1,"transactionLineId":1}}
+{"transactionSummary":[{"details":"$3.49","description":"SUBTOTAL"},{"details":"$0.29","description":"TAX ON 3.49"},{"details":"$3.78","description":"TOTAL DUE"}]}
+{"paymentSummary":[{"details":"$8.78","description":"DEBIT"},{"description":"ACCT#: ************9130"},{"description":"APPROVAL#: 214459    AUTH CODE: 0"},{"description":"APPROVAL TIME: 162956"},{"description":"DEBIT AUTH NAME: UnknownAuthorizer"},{"description":"DEBIT ACCT TYPE:    "},{"description":"DEBIT TRACE ID: 905540"},{"description":"TERM#: 00073855199"},{"description":"REF#: 75901756398"},{"description":"APP NAME: US MAESTRO      "},{"description":"AID: A0000000042203"},{"description":"ENTRY: CHIP"},{"description":"APPROVED"},{"description":"PIN VERIFIED"},{"description":"CRYPTO: ARQC CE5162DE1675E208"},{"description":"BATCH: 84"},{"description":"SEQ: 46"}]}
+{"transactionSummary":[{"details":"$3.49","description":"SUBTOTAL"},{"details":"$0.29","description":"TAX ON 3.49"},{"details":"$3.78","description":"TOTAL DUE"},{"details":"$5.00","description":"CHANGE"}]}
+{"transactionFooter":{"footerLines":["CUSTOMER AGREES TO PAY THE ABOVE","TOTAL AMOUNT ACCORDING TO THE CARD","HOLDERS AGREEMENT"],"memberDetails":[],"footer":["THANK YOU","PLEASE COME AGAIN!","T#01 OP41 TRN4557 08/12/2025 16:29 PM"],"transactionStatus":"Completed"}}
+{"CMD":"EndTransaction"}
+{"CMD":"StartTransaction"}
+{"metaData":{"storeNumber":"38551","terminalNumber":"01","timeStamp":"2025-08-13T12:37:14","transactionSeqNumber":"4563","transactionType":"Sale","operator":"OP41"}}
+{"transactionHeader":{"headerLines":["7 ELEVEN","8800 HARMON ROAD","FORT WORTH TX 76177","Ph: 6822842773","STORE#: 38551","THANKS FOR YOUR BUSINESS!","NO RETURNS ON PHONE ACCESSORIES,TOBACCO",""]}}
+{"cartChangeTrail":{"timeStamp":"2025-08-13T17:37:14","eventType":"addLineItem","eventSeq":1,"itemName":"Glazed Donut","price":1,"quantity":2,"transactionLineId":1}}
+{"transactionSummary":[{"details":"$2.00","description":"SUBTOTAL"},{"details":"$2.00","description":"TOTAL DUE"}]}
+{"transactionSummary":[{"details":"$2.00","description":"SUBTOTAL"},{"details":"$2.00","description":"TOTAL DUE"},{"details":"$2.00","description":"CHANGE"}]}
+{"transactionSummary":[{"details":"$2.00","description":"SUBTOTAL"},{"details":"$2.00","description":"TOTAL DUE"}]}
+{"paymentSummary":[{"details":"$2.00","description":"Cash"}]}
+{"transactionFooter":{"footerLines":null,"memberDetails":[],"footer":["THANK YOU","PLEASE COME AGAIN!","T#01 OP41 TRN4563 08/13/2025 12:39 PM"],"transactionStatus":"Completed"}}
+{"CMD":"EndTransaction"}
+{"CMD":"StartTransaction"}
+{"metaData":{"storeNumber":"38551","terminalNumber":"01","timeStamp":"2025-08-13T13:58:00","transactionSeqNumber":"4564","transactionType":"Sale","operator":"OP41"}}
+{"transactionHeader":{"headerLines":["7 ELEVEN","8800 HARMON ROAD","FORT WORTH TX 76177","Ph: 6822842773","STORE#: 38551","THANKS FOR YOUR BUSINESS!","NO RETURNS ON PHONE ACCESSORIES,TOBACCO",""]}}
+{"cartChangeTrail":{"timeStamp":"2025-08-13T18:58:00","eventType":"addLineItem","eventSeq":1,"itemName":"HF Pizza 6ct Cheese WHOLE","price":9.99,"quantity":1,"transactionLineId":1}}
+{"transactionSummary":[{"details":"$9.99","description":"SUBTOTAL"},{"details":"$0.82","description":"TAX ON 9.99"},{"details":"$10.81","description":"TOTAL DUE"}]}
+{"CMD":"StartTransaction"}
+{"metaData":{"storeNumber":"38551","terminalNumber":"01","timeStamp":"2025-08-13T14:00:13","transactionSeqNumber":"4564","transactionType":"Sale","operator":"OP41"}}
+{"transactionHeader":{"headerLines":["7 ELEVEN","8800 HARMON ROAD","FORT WORTH TX 76177","Ph: 6822842773","STORE#: 38551","THANKS FOR YOUR BUSINESS!","NO RETURNS ON PHONE ACCESSORIES,TOBACCO",""]}}
+{"cartChangeTrail":{"timeStamp":"2025-08-13T19:00:13","eventType":"addLineItem","eventSeq":1,"itemName":"Camel SNUS FrstLrg","price":7.29,"quantity":1,"transactionLineId":1,"itemRestrictionCode":2}}
+{"transactionSummary":[{"details":"$7.29","description":"SUBTOTAL"},{"details":"$0.60","description":"TAX ON 7.29"},{"details":"$7.89","description":"TOTAL DUE"}]}
+{"CMD":"StartTransaction"}
+{"metaData":{"storeNumber":"38551","terminalNumber":"01","timeStamp":"2025-08-13T14:02:00","transactionSeqNumber":"4564","transactionType":"Sale","operator":"OP41"}}
+{"transactionHeader":{"headerLines":["7 ELEVEN","8800 HARMON ROAD","FORT WORTH TX 76177","Ph: 6822842773","STORE#: 38551","THANKS FOR YOUR BUSINESS!","NO RETURNS ON PHONE ACCESSORIES,TOBACCO",""]}}
+{"cartChangeTrail":{"timeStamp":"2025-08-13T19:02:00","eventType":"addLineItem","eventSeq":1,"itemName":"Doritos Jumpin' Jack 2.75zPP","price":1.99,"quantity":2,"transactionLineId":1}}
+{"transactionSummary":[{"details":"$3.98","description":"SUBTOTAL"},{"details":"$3.98","description":"TOTAL DUE"}]}
+{"paymentSummary":[{"details":"$3.98","description":"DISCOVER"},{"description":"ACCT#: ************0810"},{"description":"APPROVAL#: 105683    AUTH CODE: 0"},{"description":"APPROVAL TIME: 140531"},{"description":"TERM#: 00073855199"},{"description":"REF#: 16949727930"},{"description":"APP NAME: DISCOVER CL"},{"description":"AID: A0000001523010"},{"description":"ENTRY: CONTACTLESS"},{"description":"APPROVED"},{"description":"PIN VERIFIED"},{"description":"CRYPTO: ARQC 432EE93F4AB9D0F0"},{"description":"BATCH: 85"},{"description":"SEQ: 6"}]}
+{"transactionFooter":{"footerLines":["CUSTOMER AGREES TO PAY THE ABOVE","TOTAL AMOUNT ACCORDING TO THE CARD","HOLDERS AGREEMENT"],"memberDetails":[],"footer":["THANK YOU","PLEASE COME AGAIN!","T#01 OP41 TRN4564 08/13/2025 14:05 PM"],"transactionStatus":"Completed"}}
+{"CMD":"EndTransaction"}
+{"CMD":"StartTransaction"}
+{"metaData":{"storeNumber":"38551","terminalNumber":"01","timeStamp":"2025-08-13T14:20:40","transactionSeqNumber":"4565","transactionType":"Sale","operator":"OP41"}}
+{"transactionHeader":{"headerLines":["7 ELEVEN","8800 HARMON ROAD","FORT WORTH TX 76177","Ph: 6822842773","STORE#: 38551","THANKS FOR YOUR BUSINESS!","NO RETURNS ON PHONE ACCESSORIES,TOBACCO",""]}}
+{"cartChangeTrail":{"timeStamp":"2025-08-13T19:20:40","eventType":"addLineItem","eventSeq":1,"itemName":"HF Pizza 6ct Cheese WHOLE","price":9.99,"quantity":1,"transactionLineId":1}}
+{"transactionSummary":[{"details":"$9.99","description":"SUBTOTAL"},{"details":"$0.82","description":"TAX ON 9.99"},{"details":"$10.81","description":"TOTAL DUE"}]}
+{"CMD":"StartTransaction"}
+{"metaData":{"storeNumber":"38551","terminalNumber":"01","timeStamp":"2025-08-13T14:20:40","transactionSeqNumber":"4565","transactionType":"Sale","operator":"OP41"}}
+{"transactionHeader":{"headerLines":["7 ELEVEN","8800 HARMON ROAD","FORT WORTH TX 76177","Ph: 6822842773","STORE#: 38551","THANKS FOR YOUR BUSINESS!","NO RETURNS ON PHONE ACCESSORIES,TOBACCO",""]}}
+{"cartChangeTrail":{"timeStamp":"2025-08-13T19:20:40","eventType":"addLineItem","eventSeq":1,"itemName":"HF Pizza 6ct Cheese WHOLE","price":9.99,"quantity":1,"transactionLineId":1}}
+{"CMD":"StartTransaction"}
+{"metaData":{"storeNumber":"38551","terminalNumber":"01","timeStamp":"2025-08-13T14:20:40","transactionSeqNumber":"4565","transactionType":"Sale","operator":"OP41"}}
+{"transactionHeader":{"headerLines":["7 ELEVEN","8800 HARMON ROAD","FORT WORTH TX 76177","Ph: 6822842773","STORE#: 38551","THANKS FOR YOUR BUSINESS!","NO RETURNS ON PHONE ACCESSORIES,TOBACCO",""]}}
+{"cartChangeTrail":{"timeStamp":"2025-08-13T19:20:40","eventType":"addLineItem","eventSeq":1,"itemName":"HF Pizza 6ct Cheese WHOLE","price":9.99,"quantity":1,"transactionLineId":1}}
+{"CMD":"StartTransaction"}
+{"metaData":{"storeNumber":"38551","terminalNumber":"01","timeStamp":"2025-08-13T14:20:40","transactionSeqNumber":"4565","transactionType":"Sale","operator":"OP41"}}
+{"transactionHeader":{"headerLines":["7 ELEVEN","8800 HARMON ROAD","FORT WORTH TX 76177","Ph: 6822842773","STORE#: 38551","THANKS FOR YOUR BUSINESS!","NO RETURNS ON PHONE ACCESSORIES,TOBACCO",""]}}
+{"cartChangeTrail":{"timeStamp":"2025-08-13T19:20:40","eventType":"addLineItem","eventSeq":1,"itemName":"HF Pizza 6ct Cheese WHOLE","price":9.99,"quantity":1,"transactionLineId":1}}
+{"transactionSummary":[{"details":"$9.99","description":"SUBTOTAL"},{"details":"$9.99","description":"TOTAL DUE"}]}
+{"transactionFooter":{"footerLines":null,"memberDetails":[],"footer":["THANK YOU","PLEASE COME AGAIN!","T#01 OP41 TRN4565 08/13/2025 16:07 PM"],"transactionStatus":"Aborted"}}
+{"CMD":"EndTransaction"}

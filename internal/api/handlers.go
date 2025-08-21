@@ -401,13 +401,13 @@ func (s *Server) configHandler(w http.ResponseWriter, r *http.Request) {
 
 	// Add mode-specific details
 	if mode == "simulation" {
-		realTime := os.Getenv("REAL_TIME")
+		realTime := os.Getenv("SIM_REAL_TIME")
 		if realTime == "false" {
-			response["description"] = "Simulation mode: No timestamp/seq fudging (REAL_TIME=false)"
+			response["description"] = "Simulation mode: No timestamp/seq fudging (SIM_REAL_TIME=false)"
 		} else {
-			response["description"] = "Simulation mode: With timestamp/seq fudging (REAL_TIME=true/default)"
+			response["description"] = "Simulation mode: With timestamp/seq fudging (SIM_REAL_TIME=true/default)"
 		}
-		response["real_time_mode"] = realTime != "false"
+		response["sim_real_time_mode"] = realTime != "false"
 	}
 
 	_ = json.NewEncoder(w).Encode(response)

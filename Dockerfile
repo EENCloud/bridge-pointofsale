@@ -9,17 +9,15 @@ RUN grep -v "replace github.com/eencloud/goeen" go.mod > go.mod.tmp && mv go.mod
 RUN cat path_replacements.txt >> go.mod && go mod tidy
 RUN go build -buildvcs=false -ldflags="-s -w" -o bridge-pointofsale ./cmd/bridge-pointofsale/
 
-FROM harbor.eencloud.com/dockerhub_proxy/library/alpine:3.18 AS production
+FROM harbor.eencloud.com/dockerhub_proxy/library/alpine:3.18
 RUN apk add --no-cache tini supervisor
 RUN mkdir -p /opt/een/app/point_of_sale /opt/een/data/point_of_sale /opt/een/var/log/point_of_sale
 WORKDIR /opt/een/app/point_of_sale
 COPY --from=build /usr/src/app/bridge-pointofsale/bridge-pointofsale .
 COPY --from=build /usr/src/app/bridge-pointofsale/internal/bridge ./internal/bridge
+COPY --from=build /usr/src/app/bridge-pointofsale/data ./data
 COPY supervisord.conf /etc/supervisord.conf
 COPY scripts/entrypoint.sh ./entrypoint.sh
 RUN chmod +x ./entrypoint.sh
 ENTRYPOINT ["/sbin/tini", "--"]
 CMD ["./entrypoint.sh"]
-
-FROM production AS sim
-COPY --from=build /usr/src/app/bridge-pointofsale/data ./data
