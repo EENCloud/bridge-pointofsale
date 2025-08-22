@@ -232,7 +232,7 @@ else
             exit 1
         fi
         
-        curl -s -X POST "http://localhost:$VENDOR_PORT/$REGISTER_IP" \
+        curl -s -X POST "http://localhost:$VENDOR_PORT/api/711pos2/$REGISTER_IP" \
             -H "Content-Type: application/json" \
             -d "$line" > /dev/null
         line_count=$((line_count + 1))
