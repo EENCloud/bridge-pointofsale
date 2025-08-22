@@ -9,7 +9,6 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
 
@@ -200,7 +199,7 @@ func (s *Simulator) postJSONUnified(jsonData, sourceIP string) error {
 		}
 	}
 
-	targetURL := s.targetURL + "/" + sourceIP
+	targetURL := s.targetURL + "/api/711pos2/" + sourceIP
 
 	for i := 0; i < maxRetries; i++ {
 		resp, err := http.Post(targetURL, "application/json", bytes.NewBufferString(jsonData))
@@ -250,21 +249,4 @@ func (s *Simulator) Stop() {
 	s.logger.Info("Stopping simulator...")
 	s.stopped = true
 	close(s.stopChan)
-}
-
-// DecodeTransactionTimestamp extracts the timestamp from a generated transaction sequence
-// Format: "original-timestamp-random" -> "3475-65a1b2c3-a1b2"
-func DecodeTransactionTimestamp(txnSeq string) (time.Time, error) {
-	parts := strings.Split(txnSeq, "-")
-	if len(parts) < 2 {
-		return time.Time{}, fmt.Errorf("invalid transaction sequence format: %s", txnSeq)
-	}
-
-	timestampHex := parts[1]
-	timestamp, err := strconv.ParseInt(timestampHex, 16, 64)
-	if err != nil {
-		return time.Time{}, fmt.Errorf("failed to parse timestamp from %s: %v", timestampHex, err)
-	}
-
-	return time.Unix(timestamp, 0), nil
 }

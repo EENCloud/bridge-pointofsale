@@ -110,12 +110,21 @@ func (i *Ingestor) getEffectiveIP(r *http.Request) string {
 		ip = strings.Split(r.RemoteAddr, ":")[0]
 	}
 
-	if ip == "127.0.0.1" || ip == "::1" {
-		if urlIP := strings.TrimPrefix(r.URL.Path, "/"); urlIP != "" && urlIP != "/" {
-			return urlIP
+	isLocalhost := ip == "127.0.0.1" || ip == "::1" || ip == "0.0.0.0" ||
+		strings.HasPrefix(ip, "127.") || ip == "localhost"
+
+	if isLocalhost {
+		path := r.URL.Path
+
+		if strings.HasPrefix(path, "/api/711pos2/") {
+			simIP := strings.TrimPrefix(path, "/api/711pos2/")
+			if simIP != "" && simIP != "/" {
+				return simIP
+			}
 		}
 	}
 
+	// Real register IP (production)
 	return ip
 }
 

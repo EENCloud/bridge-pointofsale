@@ -81,12 +81,12 @@ curl localhost:33480/driver
 
 ```bash
 # Send transaction data (after pos_config above)
-curl -X POST "localhost:6334/192.168.1.6" \
+curl -X POST "localhost:6334/api/711pos2/192.168.1.6" \
   -H "X-Register-IP: 192.168.1.6" \
   -H "Content-Type: application/json" \
   -d '{"CMD":"StartTransaction","metaData":{"storeNumber":"38551","terminalNumber":"06"}}'
 
-curl -X POST "localhost:6334/192.168.1.6" \
+curl -X POST "localhost:6334/api/711pos2/192.168.1.6" \
   -H "X-Register-IP: 192.168.1.6" \
   -H "Content-Type: application/json" \
   -d '{"CMD":"EndTransaction"}'
